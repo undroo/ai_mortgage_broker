@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react';
 import { ChatMessage } from '../types/chat';
+import ReactMarkdown from 'react-markdown';
 import './Chat.css';
 
 const Chat: React.FC = () => {
@@ -78,7 +79,11 @@ const Chat: React.FC = () => {
                         className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
                     >
                         <div className="message-content">
-                            {message.content}
+                            {message.role === 'assistant' || message.role === 'system' ? (
+                                <ReactMarkdown>{message.content}</ReactMarkdown>
+                            ) : (
+                                message.content
+                            )}
                         </div>
                         <div className="message-timestamp">
                             {new Date(message.timestamp).toLocaleTimeString()}

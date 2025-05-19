@@ -43,3 +43,105 @@ main {
     transform: rotate(360deg);
   }
 }
+
+body, .site-wrapper {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.site-header {
+  width: 100%;
+  background: #4a90e2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.navbar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.site-name {
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.hero-section {
+  width: 100%;
+  background: #eaf3fb;
+  padding: 3rem 1.5rem 2rem 1.5rem;
+  text-align: center;
+}
+
+.hero-headline {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: #223a5f;
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: #4a90e2;
+  margin: 0;
+}
+
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem 3rem 1rem;
+}
+
+.chatbot-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(34,58,95,0.08), 0 1.5px 4px rgba(34,58,95,0.04);
+  padding: 0;
+  max-width: 850px;
+  width: 100%;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
+.site-footer {
+  width: 100%;
+  background: transparent;
+  padding: 1.5rem 0 1rem 0;
+  text-align: center;
+}
+
+.footer-disclaimer {
+  color: #7b7b7b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .hero-section {
+    padding: 2rem 0.5rem 1.2rem 0.5rem;
+  }
+  .hero-headline {
+    font-size: 1.3rem;
+  }
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+  .main-content {
+    padding: 1rem 0.2rem 2rem 0.2rem;
+  }
+  .chatbot-card {
+    min-height: 400px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(34,58,95,0.10);
+  }
+}
