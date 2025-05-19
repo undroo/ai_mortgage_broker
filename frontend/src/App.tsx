@@ -84,9 +84,9 @@ function App() {
           </div>
         </div>
       </main>
-      <footer className="site-footer">
+      {/* <footer className="site-footer">
         <p className="footer-disclaimer">This is not financial advice. For professional help, speak to a licensed mortgage broker.</p>
-      </footer>
+      </footer> */}
     </div>
   );
 }
