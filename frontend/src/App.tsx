@@ -28,6 +28,7 @@ function formDataToContext(form: HomeLoanFormData): string {
 function App() {
   const [formData, setFormData] = useState<HomeLoanFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState(0);
+  const [chatExpanded, setChatExpanded] = useState(false);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,25 +52,34 @@ function App() {
         <h1 className="hero-headline">Get instant answers to your mortgage questions.</h1>
         <p className="hero-subtitle">Your free, friendly mortgage assistant.</p>
       </section>
-      <main className="main-content twocolumns">
-        <div className="main-left">
-          <Tabs labels={tabLabels} activeIndex={activeTab} onTabChange={setActiveTab}>
-            {activeTab === 0 && (
-              <HomeLoanStage1 formData={formData} onFormChange={handleFormChange} />
-            )}
-            {activeTab === 1 && (
-              <div className="stage-card"><h2 className="stage-title">Stage 2 (Coming Soon)</h2></div>
-            )}
-            {activeTab === 2 && (
-              <div className="stage-card"><h2 className="stage-title">Stage 3 (Coming Soon)</h2></div>
-            )}
-            {activeTab === 3 && (
-              <div className="stage-card"><h2 className="stage-title">Stage 4 (Coming Soon)</h2></div>
-            )}
-          </Tabs>
-        </div>
-        <div className="main-right">
+      <main className={`main-content twocolumns${chatExpanded ? ' chat-expanded' : ''}`}>
+        {!chatExpanded && (
+          <div className="main-left">
+            <Tabs labels={tabLabels} activeIndex={activeTab} onTabChange={setActiveTab}>
+              {activeTab === 0 && (
+                <HomeLoanStage1 formData={formData} onFormChange={handleFormChange} />
+              )}
+              {activeTab === 1 && (
+                <div className="stage-card"><h2 className="stage-title">Stage 2 (Coming Soon)</h2></div>
+              )}
+              {activeTab === 2 && (
+                <div className="stage-card"><h2 className="stage-title">Stage 3 (Coming Soon)</h2></div>
+              )}
+              {activeTab === 3 && (
+                <div className="stage-card"><h2 className="stage-title">Stage 4 (Coming Soon)</h2></div>
+              )}
+            </Tabs>
+          </div>
+        )}
+        <div className={`main-right${chatExpanded ? ' expanded' : ''}`}>
           <div className="chatbot-card">
+            <button
+              className="expand-chat-btn side"
+              onClick={() => setChatExpanded((prev) => !prev)}
+              aria-label={chatExpanded ? 'Show Application' : 'Expand Chat'}
+            >
+              {chatExpanded ? '»' : '«'}
+            </button>
             <Chat context={formDataToContext(formData)} />
           </div>
         </div>
