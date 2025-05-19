@@ -34,6 +34,7 @@ chat_model = ChatModel(api_key=api_key)
 
 class ChatRequest(BaseModel):
     message: str
+    context: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
@@ -42,9 +43,10 @@ class ChatResponse(BaseModel):
 async def chat(request: ChatRequest) -> ChatResponse:
     """
     Process a chat message and return the AI's response.
+    Accepts an optional context string.
     
     Args:
-        request (ChatRequest): The chat request containing the user's message
+        request (ChatRequest): The chat request containing the user's message and context
         
     Returns:
         ChatResponse: The AI's response
@@ -54,7 +56,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
     """
     try:
         print(f"Received message: {request.message}")
-        response = chat_model.chat(request.message)
+        print(f"Received context: {request.context}")
+        response = chat_model.chat(request.message, context=request.context)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

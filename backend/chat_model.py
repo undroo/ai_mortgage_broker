@@ -67,7 +67,7 @@ class ChatModel:
         
         return "\n".join(formatted_history)
 
-    def _generate_response(self, question: str) -> str:
+    def _generate_response(self, question: str, context: str = None) -> str:
         """
         Generate a response using the model, taking into account conversation history.
         
@@ -86,7 +86,10 @@ class ChatModel:
 
             Current question: {question}
 
-            Please provide a helpful response that takes into account the conversation history:"""
+            Please provide a helpful response that takes into account the conversation history
+            and the context of the user including their details. 
+            context: {context}
+            """
         
         self.logger.info("Generating response with conversation history...")
         self.logger.debug(f"Using prompt: {prompt}")
@@ -100,15 +103,17 @@ class ChatModel:
         self.logger.info("Response generated successfully")
         return cleaned_text
 
-    def chat(self, question: str) -> str:
+    def chat(self, question: str, context: str = None) -> str:
         """
         Process a user question and generate a response.
         
         Args:
             question (str): The user's question
+            context (str): The context of the user including their details
             
         Returns:
             str: The assistant's response
+
         """
         # Add user message to history
         self.message_history.append({
@@ -118,7 +123,7 @@ class ChatModel:
         })
         
         # Generate response
-        response = self._generate_response(question)
+        response = self._generate_response(question, context)
         
         # Add assistant response to history
         self.message_history.append({

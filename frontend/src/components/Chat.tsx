@@ -3,7 +3,11 @@ import { ChatMessage } from '../types/chat';
 import ReactMarkdown from 'react-markdown';
 import './Chat.css';
 
-const Chat: React.FC = () => {
+interface ChatProps {
+    context?: string;
+}
+
+const Chat: React.FC<ChatProps> = ({ context = '' }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +41,7 @@ const Chat: React.FC = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: inputValue }),
+                body: JSON.stringify({ message: inputValue, context }),
             });
 
             if (!response.ok) {
