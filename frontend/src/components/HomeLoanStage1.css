@@ -74,4 +74,70 @@
     padding: 1.2rem 0.7rem 1.2rem 0.7rem;
     max-width: 100%;
   }
+}
+
+.form-section {
+  margin-bottom: 2.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eaf3fb;
+}
+
+.form-section-title {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #4a90e2;
+  margin-bottom: 1.1rem;
+  margin-top: 0.2rem;
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: #223a5f;
+  margin-bottom: 0.5rem;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.toggle-group label {
+  font-weight: 400;
+  color: #223a5f;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.income-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.income-label {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.income-frequency-select {
+  flex: 1;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f8f9fa;
+  color: #223a5f;
+  margin-bottom: 0.2rem;
+}
+
+.income-frequency-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74,144,226,0.12);
 } 
