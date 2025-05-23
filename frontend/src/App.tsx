@@ -6,25 +6,27 @@ import './App.css';
 
 const initialFormData: HomeLoanFormData = {
   loanPurpose: '',
-  age: 30,
-  dependents: 0,
+  borrowingType: 'individual',
+  age: '30',
+  dependents: '0',
   employmentType: '',
-  grossIncome: 0,
+  grossIncome: '',
   incomeFrequency: 'monthly',
-  otherIncome: 0,
+  otherIncome: '',
   otherIncomeFrequency: 'monthly',
-  livingExpenses: 0,
-  rentBoard: 0,
+  livingExpenses: '',
+  rentBoard: '',
   hasHecs: false,
-  hecsRepayment: 0,
-  creditCardLimits: 0,
-  loanRepayment: 0,
-  loanTerm: 30,
-  interestRate: 6.0,
+  hecsRepayment: '',
+  creditCardLimits: '',
+  loanRepayment: '',
+  loanTerm: '30',
+  interestRate: '6.0',
 };
 
 function formDataToContext(form: HomeLoanFormData): string {
   const lines = [
+    form.borrowingType && `Borrowing as: ${form.borrowingType === 'couple' ? 'Couple' : 'Individual'}`,
     form.loanPurpose && `Loan purpose: ${form.loanPurpose}`,
     form.age ? `Age: ${form.age}` : '',
     form.dependents ? `Number of dependents: ${form.dependents}` : '',
@@ -43,6 +45,23 @@ function formDataToContext(form: HomeLoanFormData): string {
   return lines.filter(Boolean).join('\n');
 }
 
+function getEstimatePayload(form: HomeLoanFormData) {
+  return {
+    ...form,
+    age: Number(form.age),
+    dependents: Number(form.dependents),
+    grossIncome: Number(form.grossIncome),
+    otherIncome: Number(form.otherIncome),
+    livingExpenses: Number(form.livingExpenses),
+    rentBoard: Number(form.rentBoard),
+    hecsRepayment: Number(form.hecsRepayment),
+    creditCardLimits: Number(form.creditCardLimits),
+    loanRepayment: Number(form.loanRepayment),
+    loanTerm: Number(form.loanTerm),
+    interestRate: Number(form.interestRate),
+  };
+}
+
 function App() {
   const [formData, setFormData] = useState<HomeLoanFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState(0);
@@ -54,9 +73,6 @@ function App() {
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let newValue: any = value;
-    if (type === 'number') {
-      newValue = value === '' ? '' : Number(value);
-    }
     if (name === 'hasHecs') {
       newValue = value === 'true';
     }
@@ -71,7 +87,7 @@ function App() {
       fetch('http://localhost:8000/api/estimate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(getEstimatePayload(formData)),
       })
         .then(res => res.json())
         .then(data => {

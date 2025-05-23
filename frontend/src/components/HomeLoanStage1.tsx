@@ -3,21 +3,22 @@ import './HomeLoanStage1.css';
 
 export interface HomeLoanFormData {
   loanPurpose: string;
-  age: number;
-  dependents: number;
+  borrowingType: string;
+  age: string | number;
+  dependents: string | number;
   employmentType: string;
-  grossIncome: number;
+  grossIncome: string | number;
   incomeFrequency: string;
-  otherIncome: number;
+  otherIncome: string | number;
   otherIncomeFrequency: string;
-  livingExpenses: number;
-  rentBoard: number;
+  livingExpenses: string | number;
+  rentBoard: string | number;
   hasHecs: boolean;
-  hecsRepayment: number;
-  creditCardLimits: number;
-  loanRepayment: number;
-  loanTerm: number;
-  interestRate: number;
+  hecsRepayment: string | number;
+  creditCardLimits: string | number;
+  loanRepayment: string | number;
+  loanTerm: string | number;
+  interestRate: string | number;
 }
 
 interface Props {
@@ -34,6 +35,13 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
         <div className="form-section">
           <div className="form-section-title">Personal Details</div>
           <label>
+            Borrowing as
+            <select name="borrowingType" value={formData.borrowingType} onChange={onFormChange} required>
+              <option value="individual">Individual</option>
+              <option value="couple">Couple</option>
+            </select>
+          </label>
+          <label>
             Loan purpose
             <select name="loanPurpose" value={formData.loanPurpose} onChange={onFormChange} required>
               <option value="" disabled>Select purpose</option>
@@ -48,7 +56,7 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
               name="age"
               value={formData.age || ''}
               onChange={onFormChange}
-              min="18"
+              min="0"
               max="99"
               required
               placeholder="Your age"
@@ -81,7 +89,7 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
 
         {/* Income */}
         <div className="form-section">
-          <div className="form-section-title">Income (Gross)</div>
+          <div className="form-section-title">Total Income (Pre-tax)</div>
           <div className="income-row">
             <label className="income-label">
               Gross income/wages
@@ -134,7 +142,7 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
 
         {/* Expenses */}
         <div className="form-section">
-          <div className="form-section-title">Expenses (Monthly)</div>
+          <div className="form-section-title">Total Expenses (Monthly)</div>
           <label>
             Living expenses (exclude rent/mortgage)
             <input
@@ -254,6 +262,7 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
             />
           </label>
         </div>
+        <button type="button" className="next-btn">Calculate</button>
       </form>
     </div>
   );

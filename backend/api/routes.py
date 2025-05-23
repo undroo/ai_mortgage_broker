@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 # Add the project root directory to the Python path
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.append(project_root)
-from backend.chat_model import ChatModel
+from backend.models.chat_model import ChatModel
+from backend.models.borrowing_model import BorrowingModel
 
 # Load environment variables
 load_dotenv()
@@ -31,6 +32,7 @@ load_dotenv(project_root + '/config/.env')
 api_key = os.getenv("GEMINI_API_KEY")
 # Initialize chat model
 chat_model = ChatModel(api_key=api_key)
+borrowing_model = BorrowingModel()
 
 class ChatRequest(BaseModel):
     message: str
@@ -56,6 +58,7 @@ class EstimateRequest(BaseModel):
     loanPurpose: str
     loanTerm: int
     interestRate: float
+    borrowingType: str
 
 class EstimateResponse(BaseModel):
     estimate: float
@@ -79,7 +82,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
     try:
         print(f"Received message: {request.message}")
         print(f"Received context: {request.context}")
-        response = chat_model.chat(request.message, context=request.context)
+        # need to add to context if BorrowingModel is used
+        if borrowing_model.details != None:
+            context = request.context + f"Borrowing power: {borrowing_model.borrowing_power}"
+            print(f"Updated context: {context}")
+        else:
+            context = request.context
+        response = chat_model.chat(request.message, context=context)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -89,21 +98,7 @@ async def estimate_borrowing_power(request: EstimateRequest) -> EstimateResponse
     """
     Estimate borrowing power based on user details. Placeholder logic.
     """
-    # Convert all income to monthly
-    def to_monthly(amount, freq):
-        if freq == 'weekly':
-            return amount * 52 / 12
-        if freq == 'annual':
-            return amount / 12
-        return amount
-    monthly_income = to_monthly(request.grossIncome, request.incomeFrequency) + to_monthly(request.otherIncome, request.otherIncomeFrequency)
-    monthly_expenses = request.livingExpenses + request.rentBoard + request.loanRepayment + (request.hecsRepayment if request.hasHecs else 0)
-    # Placeholder: 30% of net income, minus debts, times a factor
-    net_monthly = monthly_income - monthly_expenses
-    estimate = max(0, net_monthly * 12 * 5 - request.creditCardLimits)  # 5x annual net, minus credit card limits
-    summary = (
-        f"User earns ${monthly_income*12:,.0f}/year, has ${request.creditCardLimits:,.0f} in credit card limits, "
-        f"${request.loanRepayment:,.0f}/mo in loan repayments, {('has' if request.hasHecs else 'no')} HECS/HELP debt, "
-        f"and may borrow approximately ${estimate:,.0f}."
-    )
-    return EstimateResponse(estimate=estimate, summary=summary)
+    borrowing_model.update_details(request)
+    response = borrowing_model.get_borrowing_response()
+    estimate = response.borrowing_power
+    return EstimateResponse(estimate=estimate, summary="Coming soon")
