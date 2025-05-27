@@ -1,6 +1,7 @@
 # Borrowing Model
 from pydantic import BaseModel
 import json
+from models.tax_rates import calculate_tax
 
 class EstimateRequest(BaseModel): # Simplified borrowing model
     grossIncome: float
@@ -23,6 +24,7 @@ class EstimateRequest(BaseModel): # Simplified borrowing model
 
 class BorrowingResponse(BaseModel):
     total_income: float
+    total_income_after_tax: float
     total_expenses: float
     hasHecs: bool
     net_income: float
@@ -50,7 +52,8 @@ class BorrowingModel:
     def get_borrowing_response(self):
         if self.details != None:
             return BorrowingResponse(
-                total_income=self.yearly_income,
+                total_income=self.yearly_income+self.yearly_other_income,
+                total_income_after_tax=self.yearly_income_after_tax,
                 total_expenses=self.total_expense,
                 hasHecs=self.details.hasHecs,
                 net_income=self.yearly_income_after_expenses,
@@ -70,6 +73,8 @@ class BorrowingModel:
             self.yearly_income = self.details.grossIncome
             self.yearly_other_income = self.details.otherIncome
 
+        # Need to apply taxes to income
+        self.yearly_income_after_tax = self.yearly_income + self.yearly_other_income - calculate_tax(self.yearly_income+self.yearly_other_income)
         
         
     def calculate_total_expenses(self): # Convert all expenses to yearly
@@ -87,8 +92,6 @@ class BorrowingModel:
 
     def calculate_living_expenses(self): # Convert all living expenses to yearly
         self.yearly_livingExpenses = self.details.livingExpenses*12
-
-
         # Living expenses cannot be below the HEM benchmark
         if self.details.dependents > 3:
             dependents = 3
@@ -96,14 +99,14 @@ class BorrowingModel:
             dependents = self.details.dependents
         hem_benchmark = self.assumptions['hem_benchmark']['simple'][self.details.borrowingType][str(dependents)]
         self.hem_benchmark = hem_benchmark * 12
-        if self.yearly_livingExpenses < hem_benchmark:
-            self.yearly_livingExpenses = hem_benchmark
+        if self.yearly_livingExpenses < self.hem_benchmark:
+            self.yearly_livingExpenses = self.hem_benchmark
 
     def calculate_borrowing_power(self):
-        self.yearly_income_after_expenses = self.yearly_income - self.total_expense
+        self.yearly_income_after_expenses = self.yearly_income_after_tax - self.total_expense
         if self.yearly_income_after_expenses < 0:
             self.borrowing_power = 0
         else:
             # PV = P * (1 - (1 + r)^-n) / r 
-            self.borrowing_power = round(self.yearly_income_after_expenses * (1 - (1 + self.details.interestRate)**-self.details.loanTerm) / self.details.interestRate, 2)
+            self.borrowing_power = round(self.yearly_income_after_expenses * (1 - (1 + self.details.interestRate)**-self.details.loanTerm) / (self.details.interestRate/100), 0)
 

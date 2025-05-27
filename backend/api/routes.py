@@ -84,7 +84,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         print(f"Received context: {request.context}")
         # need to add to context if BorrowingModel is used
         if borrowing_model.details != None:
-            context = request.context + f"Borrowing power: {borrowing_model.borrowing_power}"
+            context = request.context + f"\nBorrowing model: {borrowing_model.get_borrowing_response()}"
             print(f"Updated context: {context}")
         else:
             context = request.context

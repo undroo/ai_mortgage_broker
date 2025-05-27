@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Add the project root directory to the Python path
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.append(project_root)
-from backend.chat_model import ChatModel
+from backend.models.chat_model import ChatModel
 
 # Load environment variables
 load_dotenv(project_root + '/config/.env')
