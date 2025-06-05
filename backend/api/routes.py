@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+from .models import ChatRequest, ChatResponse, EstimateRequest, EstimateResponse
 import os
 import sys
 from pathlib import Path
@@ -34,36 +33,6 @@ api_key = os.getenv("GEMINI_API_KEY")
 chat_model = ChatModel(api_key=api_key)
 borrowing_model = BorrowingModel()
 
-class ChatRequest(BaseModel):
-    message: str
-    context: Optional[str] = None
-
-class ChatResponse(BaseModel):
-    response: str
-
-class EstimateRequest(BaseModel):
-    grossIncome: float
-    incomeFrequency: str
-    otherIncome: float
-    otherIncomeFrequency: str
-    livingExpenses: float
-    rentBoard: float
-    dependents: int
-    creditCardLimits: float
-    loanRepayment: float
-    hasHecs: bool
-    hecsRepayment: float
-    age: int
-    employmentType: str
-    loanPurpose: str
-    loanTerm: int
-    interestRate: float
-    borrowingType: str
-
-class EstimateResponse(BaseModel):
-    estimate: float
-    summary: str
-
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     """
@@ -80,16 +49,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
         HTTPException: If there's an error processing the request
     """
     try:
-        print(f"Received message: {request.message}")
-        print(f"Received context: {request.context}")
         # need to add to context if BorrowingModel is used
         if borrowing_model.details != None:
             context = request.context + f"\nBorrowing model: {borrowing_model.get_borrowing_response()}"
-            print(f"Updated context: {context}")
         else:
             context = request.context
         response = chat_model.chat(request.message, context=context)
-        return ChatResponse(response=response)
+        return ChatResponse(response=response, actions=[])
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

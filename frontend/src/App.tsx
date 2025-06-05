@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Chat from './components/Chat';
-import HomeLoanStage1, { HomeLoanFormData } from './components/HomeLoanStage1';
+import HomeLoanStage1, { HomeLoanFormData } from './components/BorrowingCalculator';
 import Tabs from './components/Tabs';
 import './App.css';
 
@@ -14,6 +14,10 @@ const initialFormData: HomeLoanFormData = {
   incomeFrequency: 'monthly',
   otherIncome: '',
   otherIncomeFrequency: 'monthly',
+  secondPersonIncome: '',
+  secondPersonIncomeFrequency: 'monthly',
+  secondPersonOtherIncome: '',
+  secondPersonOtherIncomeFrequency: 'monthly',
   livingExpenses: '',
   rentBoard: '',
   hasHecs: false,
@@ -31,8 +35,10 @@ function formDataToContext(form: HomeLoanFormData): string {
     form.age ? `Age: ${form.age}` : '',
     form.dependents ? `Number of dependents: ${form.dependents}` : '',
     form.employmentType && `Employment type: ${form.employmentType}`,
-    form.grossIncome ? `Gross income: $${form.grossIncome} (${form.incomeFrequency})` : '',
-    form.otherIncome ? `Other income: $${form.otherIncome} (${form.otherIncomeFrequency})` : '',
+    form.grossIncome ? `First person's gross income: $${form.grossIncome} (${form.incomeFrequency})` : '',
+    form.otherIncome ? `First person's other income: $${form.otherIncome} (${form.otherIncomeFrequency})` : '',
+    form.borrowingType === 'couple' && form.secondPersonIncome ? `Second person's gross income: $${form.secondPersonIncome} (${form.secondPersonIncomeFrequency})` : '',
+    form.borrowingType === 'couple' && form.secondPersonOtherIncome ? `Second person's other income: $${form.secondPersonOtherIncome} (${form.secondPersonOtherIncomeFrequency})` : '',
     form.livingExpenses ? `Living expenses: $${form.livingExpenses}` : '',
     form.rentBoard ? `Rent/board: $${form.rentBoard}` : '',
     `HECS/HELP debt: ${form.hasHecs ? 'Yes' : 'No'}`,
@@ -52,6 +58,8 @@ function getEstimatePayload(form: HomeLoanFormData) {
     dependents: Number(form.dependents),
     grossIncome: Number(form.grossIncome),
     otherIncome: Number(form.otherIncome),
+    secondPersonIncome: Number(form.secondPersonIncome),
+    secondPersonOtherIncome: Number(form.secondPersonOtherIncome),
     livingExpenses: Number(form.livingExpenses),
     rentBoard: Number(form.rentBoard),
     hecsRepayment: Number(form.hecsRepayment),
@@ -65,7 +73,7 @@ function getEstimatePayload(form: HomeLoanFormData) {
 function App() {
   const [formData, setFormData] = useState<HomeLoanFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState(0);
-  const [chatExpanded, setChatExpanded] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [estimateSummary, setEstimateSummary] = useState<string>('');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -112,6 +120,10 @@ function App() {
     'Stage 4',
   ];
 
+  const toggleChat = () => {
+    setIsChatExpanded(!isChatExpanded);
+  };
+
   return (
     <div className="site-wrapper">
       <header className="site-header">
@@ -123,14 +135,12 @@ function App() {
         <h1 className="hero-headline">Get instant answers to your mortgage questions.</h1>
         <p className="hero-subtitle">Your free, friendly mortgage assistant.</p>
       </section>
-      <main className={`main-content twocolumns${chatExpanded ? ' chat-expanded' : ''}`}>
-        {!chatExpanded && (
+      <div className="content-wrapper">
+        <main className="main-content">
           <div className="main-left">
             <Tabs labels={tabLabels} activeIndex={activeTab} onTabChange={setActiveTab}>
               {activeTab === 0 && (
-                <>
-                  <HomeLoanStage1 formData={formData} onFormChange={handleFormChange} />
-                </>
+                <HomeLoanStage1 formData={formData} onFormChange={handleFormChange} />
               )}
               {activeTab === 1 && (
                 <div className="stage-card"><h2 className="stage-title">Stage 2 (Coming Soon)</h2></div>
@@ -143,31 +153,24 @@ function App() {
               )}
             </Tabs>
           </div>
-        )}
-        <div className={`main-right${chatExpanded ? ' expanded' : ''}`}>
-          <div className="estimate-card">
-            {estimate !== null && (
-              <div className="estimate-box">
-                <div className="estimate-label">Estimated Borrowing Power</div>
-                <div className="estimate-value">${estimate.toLocaleString()}</div>
-              </div>
-              )}
-          </div>
-          <div className="chatbot-card">
-            <button
-              className="expand-chat-btn side"
-              onClick={() => setChatExpanded((prev) => !prev)}
-              aria-label={chatExpanded ? 'Show Application' : 'Expand Chat'}
-            >
-              {chatExpanded ? '»' : '«'}
-            </button>
-            <div className="chatbot-section-header">Your Mortgage Mate</div>
-            <Chat context={formDataToContext(formData)} />
-          </div>
-        </div>
-      </main>
+        </main>
+        <aside className="estimate-sidebar">
+          {estimate !== null && (
+            <div className="estimate-box">
+              <div className="estimate-label">Estimated Borrowing Power</div>
+              <div className="estimate-value">${estimate.toLocaleString()}</div>
+            </div>
+          )}
+        </aside>
+      </div>
+      <Chat 
+        isExpanded={isChatExpanded}
+        onToggle={toggleChat}
+        context={formDataToContext(formData)}
+      />
     </div>
   );
 }
 
 export default App;
+ 

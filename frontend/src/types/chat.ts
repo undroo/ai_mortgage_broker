@@ -3,7 +3,7 @@ export interface ChatMessage {
     content: string;
     timestamp: string;
 }
-
+ 
 export interface ChatResponse {
     response: string;
 } 

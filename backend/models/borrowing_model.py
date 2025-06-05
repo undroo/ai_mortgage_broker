@@ -2,33 +2,7 @@
 from pydantic import BaseModel
 import json
 from models.tax_rates import calculate_tax
-
-class EstimateRequest(BaseModel): # Simplified borrowing model
-    grossIncome: float
-    incomeFrequency: str
-    otherIncome: float
-    otherIncomeFrequency: str
-    livingExpenses: float
-    rentBoard: float
-    dependents: int
-    creditCardLimits: float
-    loanRepayment: float
-    hasHecs: bool
-    hecsRepayment: float
-    age: int
-    employmentType: str
-    loanPurpose: str
-    loanTerm: int
-    interestRate: float
-    borrowingType: str
-
-class BorrowingResponse(BaseModel):
-    total_income: float
-    total_income_after_tax: float
-    total_expenses: float
-    hasHecs: bool
-    net_income: float
-    borrowing_power: float
+from api.models import EstimateRequest, BorrowingResponse
 
 class BorrowingModel:
     def __init__(self):
@@ -63,6 +37,7 @@ class BorrowingModel:
             return None
     
     def calculate_total_income(self): # Convert all income to yearly
+        # First person's income
         if self.details.incomeFrequency == "weekly":
             self.yearly_income = self.details.grossIncome * 52
             self.yearly_other_income = self.details.otherIncome * 52
@@ -73,10 +48,28 @@ class BorrowingModel:
             self.yearly_income = self.details.grossIncome
             self.yearly_other_income = self.details.otherIncome
 
+        # Second person's income
+        if self.details.borrowingType == "individual":
+            self.yearly_secondPersonIncome = 0
+            self.yearly_secondPersonOtherIncome = 0
+        else:
+            if self.details.secondPersonIncomeFrequency == "weekly":
+                self.yearly_secondPersonIncome = self.details.secondPersonIncome * 52
+                self.yearly_secondPersonOtherIncome = self.details.secondPersonOtherIncome * 52
+            elif self.details.secondPersonIncomeFrequency == "monthly":
+                self.yearly_secondPersonIncome = self.details.secondPersonIncome * 12
+                self.yearly_secondPersonOtherIncome = self.details.secondPersonOtherIncome * 12
+            else:
+                self.yearly_secondPersonIncome = self.details.secondPersonIncome
+                self.yearly_secondPersonOtherIncome = self.details.secondPersonOtherIncome
+
         # Need to apply taxes to income
         self.yearly_income_after_tax = self.yearly_income + self.yearly_other_income - calculate_tax(self.yearly_income+self.yearly_other_income)
+        self.yearly_secondPersonIncome_after_tax = self.yearly_secondPersonIncome + self.yearly_secondPersonOtherIncome - calculate_tax(self.yearly_secondPersonIncome+self.yearly_secondPersonOtherIncome)
         
-        
+        # Total income
+        self.yearly_income_after_tax += self.yearly_secondPersonIncome_after_tax
+
     def calculate_total_expenses(self): # Convert all expenses to yearly
         # Rent/Board expenses
         self.yearly_rentBoard = self.details.rentBoard*12
@@ -92,6 +85,7 @@ class BorrowingModel:
 
     def calculate_living_expenses(self): # Convert all living expenses to yearly
         self.yearly_livingExpenses = self.details.livingExpenses*12
+        self.yearly_stated_livingExpenses = self.yearly_livingExpenses # Stated expenses
         # Living expenses cannot be below the HEM benchmark
         if self.details.dependents > 3:
             dependents = 3

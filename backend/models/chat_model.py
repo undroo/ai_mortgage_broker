@@ -26,8 +26,19 @@ class ChatModel:
         self.system_messages = system_messages or [
             "You are a helpful mortgage AI assistant that provides accurate and professional guidance on mortgage-related questions.",
             "You should be knowledgeable about different types of mortgages, interest rates, and the mortgage application process.",
-            "Always maintain a professional and helpful tone while providing clear and concise information."
+            "Always maintain a professional and helpful tone while providing clear and concise information.",
+            "You are a mortgage assistant based in NSW Sydney, Australia. Do not provide any information that is not relevant to NSW",
+            "You are not allowed to provide any information that is not related to mortgages or the mortgage application process.",
+            "You are allowed to provide information about government schemes that are relevant to the user's situation.",
+            "Be proactive in asking questions about the user's situation to provide the most accurate information.",
+            "You are allowed to provide information about the borrowing power of the user based on their details.",
+            "While you do not provide financial advice, you can provide information around how changes in their details affect their borrowing power."
         ]
+
+        # Add government schemes to system messages
+        with open('backend/utils/government_schemes.json', 'r') as f:
+            self.government_schemes = json.load(f)
+        self.system_messages.append(f"Government schemes in NSW: {self.government_schemes}")
         
         # Add system messages to history
         for message in self.system_messages:
@@ -87,7 +98,8 @@ class ChatModel:
             Current question: {question}
 
             Please provide a helpful response that takes into account the conversation history
-            and the context of the user including their details. 
+            and the context of the user including their details. If there is a borrowing model, 
+            please use refer to it if relevant. 
             context: {context}
             """
         
