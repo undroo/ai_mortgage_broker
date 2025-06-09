@@ -57,7 +57,7 @@ class BorrowingModel:
             self.yearly_other_income = self.details.otherIncome
 
         # Second person's income
-        if self.details.borrowingType == "individual":
+        if self.details.borrowingType == "Individual":
             self.yearly_secondPersonIncome = 0
             self.yearly_secondPersonOtherIncome = 0
         else:
@@ -78,7 +78,7 @@ class BorrowingModel:
             self.yearly_rentalIncome = 0
 
         # Add rental income to other income, split into equal parts for couples
-        if self.details.borrowingType == "individual":
+        if self.details.borrowingType == "Individual":
             self.yearly_other_income += self.yearly_rentalIncome
         else:
             self.yearly_other_income += self.yearly_rentalIncome / 2

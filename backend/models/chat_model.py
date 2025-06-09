@@ -5,10 +5,15 @@ This module contains the ChatModel class, which is used to interact with the cha
 import os
 import json
 from datetime import datetime
-from typing import Dict, Any, Optional, List
-import google.generativeai as genai
+from typing import Dict, Any, Optional, List, Tuple
+from google import genai
 import logging
 from pathlib import Path
+import sys
+
+project_root = str(Path(__file__).parent.parent.parent)
+sys.path.append(project_root)
+from backend.api.models import ChatResponse
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +39,13 @@ class ChatModel:
             "You are allowed to provide information about the borrowing power of the user based on their details.",
             "While you do not provide financial advice, you can provide information around how changes in their details affect their borrowing power.",
             "You should be succinct, imagine you are messaging and your audience is using a mobile phone. Remain professional.",
-            "Feel free to use tables or lists to make your response more readable.",
-            "Use the information provided by the user actively rather than being generic",
-            "Prompt to user to answer more questions if they are not providing enough information."
+            "Use the information provided by the user actively rather than being generic, for example if a user has zero credit card limits, do not suggest on reducing it as they cannot",
+            "Prompt to user to answer more questions if they are not providing enough information.",
+            "When creating actions, do not create actions that are not relevant to the user's situation.",
+            "When creating actions around income, make sure to match the income and frequency based on what the user said",
+            # Descriptions of fields
+            "gross income is the income before tax received by the person during each of the income frequencies",
+            "If there is an action to update income, make sure to update the income and frequency based on what the user said and not accidentally annualise it without changing the frequency", 
         ]
 
         # Add government schemes to system messages
@@ -58,8 +67,10 @@ class ChatModel:
         """Set up the Gemini API with the provided key."""
         try:
             if self.api_key:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-2.0-flash')
+                # genai.configure(api_key=self.api_key)
+                # self.model = genai.GenerativeModel('gemini-2.0-flash')
+                self.client = genai.Client(api_key=self.api_key)
+                
                 self.logger.info("Gemini API configured successfully")
             else:
                 self.logger.warning("API key not set, Gemini API will not be available")
@@ -82,15 +93,16 @@ class ChatModel:
         
         return "\n".join(formatted_history)
 
-    def _generate_response(self, question: str, context: str = None) -> str:
+    def _generate_response(self, question: str, context: str = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Generate a response using the model, taking into account conversation history.
         
         Args:
             question (str): The user's question
+            context (str): Optional context about the user's situation
             
         Returns:
-            str: The model's response
+            Tuple[str, List[Dict[str, Any]]]: The model's response text and list of actions
         """
         # Format the conversation history
         conversation_history = self._format_conversation_history()
@@ -101,25 +113,69 @@ class ChatModel:
 
             Current question: {question}
 
-            Please provide a helpful response that takes into account the conversation history
+            Valid field names and their allowed values:
+            - grossIncome: number
+            - incomeFrequency: "weekly", "monthly", "yearly"
+            - otherIncome: number
+            - otherIncomeFrequency: "weekly", "monthly", "yearly"
+            - secondPersonIncome: number
+            - secondPersonIncomeFrequency: "weekly", "monthly", "yearly"
+            - secondPersonOtherIncome: number
+            - secondPersonOtherIncomeFrequency: "weekly", "monthly", "yearly"
+            - rentalIncome: number
+            - livingExpenses: number
+            - rentBoard: number
+            - dependents: number
+            - creditCardLimits: number
+            - loanRepayment: number
+            - hasHecs: true/false
+            - age: number
+            - employmentType: "Full-time", "Part-time", "Self-employed", "Unemployed"
+            - loanPurpose: "Owner-occupied", "Investor"
+            - loanTerm: number
+            - interestRate: number
+            - borrowingType: "Individual", "Couple"
+
+            The response should be helpful and take into account the conversation history
             and the context of the user including their details. If there is a borrowing model, 
             please use refer to it if relevant. 
             context: {context}
+
+            Create actions where the user provides information that is not in the context.
             """
         
         self.logger.info("Generating response with conversation history...")
         self.logger.debug(f"Using prompt: {prompt}")
         
         # Generate response
-        response = self.model.generate_content(prompt)
+        response = self.client.models.generate_content(
+            contents=prompt,
+            model="gemini-2.0-flash",   
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": ChatResponse
+            }
+        )
         
-        # Clean the response text
-        cleaned_text = response.text.strip()
-        
-        self.logger.info("Response generated successfully")
-        return cleaned_text
+        try:
+            # Log the raw response for debugging
+            self.logger.info("Raw model response:")
+            self.logger.info(response.text)
+            
+            # Parse the response as JSON
+            response_data = json.loads(response.text)
+            response_text = response_data.get("response", "")
+            actions = response_data.get("actions", [])
+            
+            self.logger.info("Response generated successfully")
+            return response_text, actions
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Failed to parse model response as JSON: {str(e)}")
+            self.logger.error("Raw response that failed to parse:")
+            self.logger.error(response.text)
+            return response.text, []  # Fallback to raw text if JSON parsing fails
 
-    def chat(self, question: str, context: str = None) -> str:
+    def chat(self, question: str, context: str = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Process a user question and generate a response.
         
@@ -128,8 +184,7 @@ class ChatModel:
             context (str): The context of the user including their details
             
         Returns:
-            str: The assistant's response
-
+            Tuple[str, List[Dict[str, Any]]]: The assistant's response text and list of actions
         """
         # Add user message to history
         self.message_history.append({
@@ -139,15 +194,15 @@ class ChatModel:
         })
         
         # Generate response
-        response = self._generate_response(question, context)
+        response_text, actions = self._generate_response(question, context)
         
         # Add assistant response to history
         self.message_history.append({
             "role": "assistant",
-            "content": response,
+            "content": response_text,
             "timestamp": datetime.now().isoformat()
         })
         
-        return response
+        return response_text, actions
 
         

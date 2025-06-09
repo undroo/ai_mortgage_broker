@@ -43,7 +43,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         request (ChatRequest): The chat request containing the user's message and context
         
     Returns:
-        ChatResponse: The AI's response
+        ChatResponse: The AI's response and any suggested actions
         
     Raises:
         HTTPException: If there's an error processing the request
@@ -54,8 +54,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
             context = request.context + f"\nBorrowing model: {borrowing_model.get_borrowing_response()}"
         else:
             context = request.context
-        response = chat_model.chat(request.message, context=context)
-        return ChatResponse(response=response, actions=[])
+        response_text, actions = chat_model.chat(request.message, context=context)
+        print(actions)
+        return ChatResponse(response=response_text, actions=actions)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

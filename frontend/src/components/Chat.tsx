@@ -7,9 +7,10 @@ interface ChatProps {
     context?: string;
     isExpanded: boolean;
     onToggle: () => void;
+    onAction?: (action: any) => void;
 }
 
-const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
+const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onAction }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -89,6 +90,13 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
             
             // Add the message to history after streaming is complete
             setMessages((prev: ChatMessage[]) => [...prev, assistantMessage]);
+
+            // Handle any actions
+            if (data.actions && data.actions.length > 0 && onAction) {
+                data.actions.forEach((action: any) => {
+                    onAction(action);
+                });
+            }
 
         } catch (error) {
             console.error('Error:', error);

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Chat from './components/Chat';
-import HomeLoanStage1, { HomeLoanFormData } from './components/BorrowingCalculator';
+import { HomeLoanFormData } from './components/BorrowingCalculator';
 import Tabs from './components/Tabs';
 import './App.css';
+import BorrowingCalculator from './components/BorrowingCalculator';
 
 const initialFormData: HomeLoanFormData = {
   loanPurpose: '',
-  borrowingType: 'individual',
+  borrowingType: 'Individual',
   age: '30',
   dependents: '0',
   employmentType: '',
@@ -82,10 +83,15 @@ function App() {
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let newValue: any = value;
+    
     if (name === 'hasHecs') {
       newValue = value === 'true';
     }
-    setFormData({ ...formData, [name]: newValue });
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: newValue
+    }));
   };
 
   // Debounced estimate API call
@@ -113,7 +119,6 @@ function App() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line
   }, [formData, activeTab]);
 
   const tabLabels = [
@@ -123,7 +128,7 @@ function App() {
     'Stage 4',
   ];
 
-  const toggleChat = () => {
+  const handleChatToggle = () => {
     setIsChatExpanded(!isChatExpanded);
   };
 
@@ -143,7 +148,7 @@ function App() {
           <div className="main-left">
             <Tabs labels={tabLabels} activeIndex={activeTab} onTabChange={setActiveTab}>
               {activeTab === 0 && (
-                <HomeLoanStage1 formData={formData} onFormChange={handleFormChange} />
+                <BorrowingCalculator formData={formData} onFormChange={handleFormChange} />
               )}
               {activeTab === 1 && (
                 <div className="stage-card"><h2 className="stage-title">Stage 2 (Coming Soon)</h2></div>
@@ -171,7 +176,7 @@ function App() {
       </div>
       <Chat 
         isExpanded={isChatExpanded}
-        onToggle={toggleChat}
+        onToggle={handleChatToggle}
         context={formDataToContext(formData)}
       />
     </div>

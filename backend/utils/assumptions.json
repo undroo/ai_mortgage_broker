@@ -1,13 +1,13 @@
 {
     "hem_benchmark": {
         "simple": {
-            "individual": {
+            "Individual": {
                 "0": 1700,
                 "1": 2300,
                 "2": 2800,
                 "3": 3000
             },
-            "couple": {
+            "Couple": {
                 "0": 2500,
                 "1": 3000,
                 "2": 3500,
