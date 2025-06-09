@@ -16,10 +16,11 @@ export interface HomeLoanFormData {
   secondPersonIncomeFrequency: string;
   secondPersonOtherIncome: string | number;
   secondPersonOtherIncomeFrequency: string;
+  // Rental income field
+  rentalIncome: string | number;
   livingExpenses: string | number;
   rentBoard: string | number;
   hasHecs: boolean;
-  hecsRepayment: string | number;
   creditCardLimits: string | number;
   loanRepayment: string | number;
   loanTerm: string | number;
@@ -33,6 +34,7 @@ interface Props {
 
 const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
   const isCouple = formData.borrowingType === 'couple';
+  const isInvestor = formData.loanPurpose === 'Investor';
 
   return (
     <div className="stage-card">
@@ -200,6 +202,27 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
               </div>
             </>
           )}
+
+          {/* Rental income field for investors */}
+          {isInvestor && (
+            <div className="income-row" style={{ marginTop: '1.5rem' }}>
+              <label className="income-label">
+                Expected weekly rental income
+                <input
+                  type="number"
+                  name="rentalIncome"
+                  value={formData.rentalIncome || ''}
+                  onChange={onFormChange}
+                  min="0"
+                  required
+                  placeholder="e.g. 500"
+                />
+              </label>
+              <div className="income-frequency-select" style={{ visibility: 'hidden' }}>
+                Weekly
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Expenses */}
@@ -258,20 +281,6 @@ const HomeLoanStage1: React.FC<Props> = ({ formData, onFormChange }) => {
               </label>
             </div>
           </label>
-          {formData.hasHecs === true && (
-            <label>
-              HECS/HELP monthly repayment
-              <input
-                type="number"
-                name="hecsRepayment"
-                value={formData.hecsRepayment || ''}
-                onChange={onFormChange}
-                min="0"
-                placeholder="e.g. 200"
-                required
-              />
-            </label>
-          )}
           <label>
             Credit card limits (total across all cards)
             <input

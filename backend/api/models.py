@@ -18,13 +18,13 @@ class EstimateRequest(BaseModel):
     secondPersonIncomeFrequency: str
     secondPersonOtherIncome: float
     secondPersonOtherIncomeFrequency: str
+    rentalIncome: float
     livingExpenses: float
     rentBoard: float
     dependents: int
     creditCardLimits: float
     loanRepayment: float
     hasHecs: bool
-    hecsRepayment: float
     age: int
     employmentType: str
     loanPurpose: str
@@ -40,6 +40,9 @@ class BorrowingResponse(BaseModel):
     total_income: float
     total_income_after_tax: float
     total_expenses: float
+    stated_living_expenses: float
     hasHecs: bool
+    yearly_hecs_repayment: float
+    employment_type: str
     net_income: float
     borrowing_power: float
