@@ -35,7 +35,11 @@ class BorrowingModel:
                 borrowing_power=self.borrowing_power,
                 stated_living_expenses=self.yearly_stated_livingExpenses,
                 yearly_hecs_repayment=self.yearly_hecs_repayment,
-                employment_type=self.details.employmentType
+                employment_type=self.details.employmentType,
+                loan_purpose=self.details.loanPurpose,
+                loan_repayment=self.expected_loan_repayment,
+                hem_benchmark=self.hem_benchmark,
+                monthly_hem_benchmark=self.hem_benchmark/12
             )
         else:
             return None
@@ -122,9 +126,12 @@ class BorrowingModel:
         self.yearly_income_after_expenses = self.yearly_income_after_tax - self.total_expense
         if self.yearly_income_after_expenses < 0:
             self.borrowing_power = 0
+            self.expected_loan_repayment = 0
         else:
             # PV = P * (1 - (1 + r)^-n) / r 
             buffer_rate = 0.03
+            pre_buffer_rate = self.details.interestRate/100
             rate = self.details.interestRate/100 + buffer_rate
             self.borrowing_power = round(self.yearly_income_after_expenses * (1 - (1 + rate)**-self.details.loanTerm) / rate, 0)
-
+            # calculate loan repayment on a monthly basis
+            self.expected_loan_repayment = self.borrowing_power * pre_buffer_rate/12 * (1 + pre_buffer_rate/12)**(self.details.loanTerm*12) / ((1 + pre_buffer_rate/12)**(self.details.loanTerm*12) - 1)

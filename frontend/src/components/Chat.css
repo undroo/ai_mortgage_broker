@@ -11,8 +11,8 @@
 }
 
 .chat-wrapper.expanded {
-    width: 400px;
-    height: 600px;
+    width: 35vw;
+    height: 69vh;
 }
 
 .chat-bubble {
@@ -60,11 +60,18 @@
     padding: 16px;
     background-color: #007bff;
     color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.chat-header:hover {
+    background-color: #0056b3;
 }
 
 .chat-header h3 {
     margin: 0;
     font-size: 1.2rem;
+    pointer-events: none; /* Prevent text selection */
 }
 
 .minimize-button {

@@ -67,4 +67,5 @@ async def estimate_borrowing_power(request: EstimateRequest) -> EstimateResponse
     borrowing_model.update_details(request)
     response = borrowing_model.get_borrowing_response()
     estimate = response.borrowing_power
-    return EstimateResponse(estimate=estimate, summary="Coming soon")
+    loan_repayment = response.loan_repayment
+    return EstimateResponse(estimate=estimate, loan_repayment=loan_repayment, summary="Coming soon")

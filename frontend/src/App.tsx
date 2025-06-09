@@ -75,6 +75,7 @@ function App() {
   const [activeTab, setActiveTab] = useState(0);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [estimate, setEstimate] = useState<number | null>(null);
+  const [loanRepayment, setLoanRepayment] = useState<number | null>(null);
   const [estimateSummary, setEstimateSummary] = useState<string>('');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -100,10 +101,12 @@ function App() {
         .then(res => res.json())
         .then(data => {
           setEstimate(data.estimate);
+          setLoanRepayment(data.loan_repayment);
           setEstimateSummary(data.summary);
         })
         .catch(() => {
           setEstimate(null);
+          setLoanRepayment(null);
           setEstimateSummary('');
         });
     }, 500);
@@ -159,6 +162,9 @@ function App() {
             <div className="estimate-box">
               <div className="estimate-label">Estimated Borrowing Power</div>
               <div className="estimate-value">${estimate.toLocaleString()}</div>
+              <div className="estimate-divider"></div>
+              <div className="estimate-label">Monthly Loan Repayment</div>
+              <div className="estimate-value">${loanRepayment?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             </div>
           )}
         </aside>

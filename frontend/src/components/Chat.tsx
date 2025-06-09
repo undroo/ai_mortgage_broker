@@ -13,7 +13,10 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [streamingMessage, setStreamingMessage] = useState<string>('');
+    const [isStreaming, setIsStreaming] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const streamingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,7 +24,29 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, streamingMessage]);
+
+    const streamText = (text: string): Promise<void> => {
+        return new Promise((resolve) => {
+            setIsStreaming(true);
+            let currentIndex = 0;
+            const words = text.split(' ');
+
+            const streamNextWord = () => {
+                if (currentIndex < words.length) {
+                    setStreamingMessage(prev => prev + (currentIndex === 0 ? '' : ' ') + words[currentIndex]);
+                    currentIndex++;
+                    streamingTimeoutRef.current = setTimeout(streamNextWord, 60);
+                } else {
+                    setIsStreaming(false);
+                    setStreamingMessage('');
+                    resolve();
+                }
+            };
+
+            streamNextWord();
+        });
+    };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -52,13 +77,19 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
 
             const data = await response.json();
             
+            // Create the assistant message
             const assistantMessage: ChatMessage = {
                 role: 'assistant',
                 content: data.response,
                 timestamp: new Date().toISOString()
             };
 
+            // Stream the response and wait for it to complete
+            await streamText(data.response);
+            
+            // Add the message to history after streaming is complete
             setMessages((prev: ChatMessage[]) => [...prev, assistantMessage]);
+
         } catch (error) {
             console.error('Error:', error);
             const errorMessage: ChatMessage = {
@@ -76,6 +107,15 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
         setInputValue(e.target.value);
     };
 
+    // Cleanup streaming timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (streamingTimeoutRef.current) {
+                clearTimeout(streamingTimeoutRef.current);
+            }
+        };
+    }, []);
+
     return (
         <div className={`chat-wrapper ${isExpanded ? 'expanded' : 'collapsed'}`}>
             {!isExpanded && (
@@ -91,11 +131,14 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
             )}
             
             <div className={`chat-container ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                <div className="chat-header">
+                <div className="chat-header" onClick={onToggle}>
                     <h3>Mortgage Mate</h3>
                     <button 
                         className="minimize-button"
-                        onClick={onToggle}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent header click from triggering
+                            onToggle();
+                        }}
                         aria-label="Minimize chat"
                     >
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
@@ -122,7 +165,14 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
                             </div>
                         </div>
                     ))}
-                    {isLoading && (
+                    {isStreaming && (
+                        <div className="message assistant-message">
+                            <div className="message-content">
+                                <ReactMarkdown>{streamingMessage}</ReactMarkdown>
+                            </div>
+                        </div>
+                    )}
+                    {isLoading && !isStreaming && (
                         <div className="message assistant-message">
                             <div className="message-content">
                                 <div className="loading-dots">
@@ -140,12 +190,12 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle }) => {
                         value={inputValue}
                         onChange={handleInputChange}
                         placeholder="Type your message..."
-                        disabled={isLoading}
+                        disabled={isLoading || isStreaming}
                         className="chat-input"
                     />
                     <button
                         type="submit"
-                        disabled={isLoading || !inputValue.trim()}
+                        disabled={isLoading || isStreaming || !inputValue.trim()}
                         className="send-button"
                     >
                         Send

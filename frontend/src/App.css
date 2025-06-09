@@ -106,11 +106,21 @@ body, .site-wrapper {
 }
 
 .estimate-value {
-  font-size: 2.1rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #223a5f;
-  margin-top: 0.2rem;
-  letter-spacing: 0.01em;
+  margin-bottom: 1rem;
+}
+
+.estimate-divider {
+  height: 1px;
+  background: rgba(74,144,226,0.2);
+  margin: 1rem 0;
+}
+
+/* Last estimate value doesn't need bottom margin */
+.estimate-value:last-child {
+  margin-bottom: 0;
 }
 
 /* ========== Responsive ========== */

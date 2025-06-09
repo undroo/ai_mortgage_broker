@@ -34,6 +34,7 @@ class EstimateRequest(BaseModel):
 
 class EstimateResponse(BaseModel):
     estimate: float
+    loan_repayment: float
     summary: str
 
 class BorrowingResponse(BaseModel):
@@ -41,8 +42,12 @@ class BorrowingResponse(BaseModel):
     total_income_after_tax: float
     total_expenses: float
     stated_living_expenses: float
+    hem_benchmark: float
+    monthly_hem_benchmark: float
     hasHecs: bool
     yearly_hecs_repayment: float
     employment_type: str
     net_income: float
     borrowing_power: float
+    loan_purpose: str
+    loan_repayment: float
