@@ -55,7 +55,7 @@ class Field(enum.Enum):
 
 class SuggestedAnswersPayload(BaseModel):
     field: Field
-    value: List[str]
+    values: List[str]
 
 class UpdateFieldPayload(BaseModel):
     field: Field

@@ -149,7 +149,9 @@ class ChatModel:
             please use refer to it if relevant. 
             context: {context}
 
-            Create actions where the user provides information that is not in the context.
+            Actions:
+            UPDATE_FIELD: Create when the user provides information that is not in the context. Or if the user is correcting information that is already in the context.
+            SUGGESTED_ANSWERS: Create when you are asking a question to the user, an example is when asking if a user has HECs debt, you can suggest answers like "Yes" or "No".
             """
         
         self.logger.info("Generating response with conversation history...")

@@ -11,9 +11,8 @@ interface ChatProps {
 }
 
 interface Suggestion {
-    label: string;
-    value: string;
     field: string;
+    label: string;
 }
 
 const INITIAL_MESSAGE: ChatMessage = {
@@ -26,19 +25,12 @@ What would you like to know about your borrowing capacity?`,
 
 const INITIAL_SUGGESTIONS: Suggestion[] = [
     {
+        field: "n/a",
         label: "Calculate my borrowing power",
-        value: "calculate",
-        field: "action"
     },
     {
-        label: "Explain the mortgage process",
-        value: "explain",
-        field: "action"
-    },
-    {
-        label: "What documents do I need?",
-        value: "documents",
-        field: "action"
+        field: "n/a",
+        label: "Guide me through the borrowing calculator",
     }
 ];
 
@@ -96,10 +88,17 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                const errorText = await response.text();
+                console.error('Server error:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: errorText
+                });
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();
+            console.log('Received response:', data); // Log the response data
             
             // Create the assistant message
             const assistantMessage: ChatMessage = {
@@ -117,8 +116,18 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
             // Handle any actions
             if (data.actions && data.actions.length > 0 && onAction) {
                 data.actions.forEach((action: any) => {
-                    if (action.type === 'suggest_answers') {
-                        setCurrentSuggestions(action.payload.suggestions);
+                    if (action.type === 'suggested_answers') {
+                        console.log('Received action:', action); // Debug log
+                        if (!action.payload?.values) {
+                            console.error('Missing value in suggested_answers payload:', action);
+                            return;
+                        }
+                        // Convert the backend suggestions to our frontend format
+                        const suggestions: Suggestion[] = action.payload.values.map((value: string) => ({
+                            label: value,
+                            field: action.payload.field
+                        }));
+                        setCurrentSuggestions(suggestions);
                     } else {
                         onAction(action);
                     }
@@ -126,7 +135,10 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
             }
 
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                error
+            });
             const errorMessage: ChatMessage = {
                 role: 'assistant',
                 content: 'Sorry, there was an error processing your request.',
@@ -155,7 +167,7 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
     };
 
     const handleSuggestionClick = async (suggestion: Suggestion) => {
-        // Create and add user message
+        // Create and add user message with just the label
         const userMessage: ChatMessage = {
             role: 'user',
             content: suggestion.label,
@@ -163,7 +175,8 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
         };
         setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
         
-        await sendMessage(suggestion.label);
+        // Send the full format to the backend
+        await sendMessage(`${suggestion.field}: ${suggestion.label}`);
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
