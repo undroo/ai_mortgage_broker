@@ -10,12 +10,45 @@ interface ChatProps {
     onAction?: (action: any) => void;
 }
 
+interface Suggestion {
+    label: string;
+    value: string;
+    field: string;
+}
+
+const INITIAL_MESSAGE: ChatMessage = {
+    role: 'assistant',
+    content: `👋 Hi! I'm your Mortgage Mate. I can help you calculate your borrowing power and guide you through the mortgage process.
+
+What would you like to know about your borrowing capacity?`,
+    timestamp: new Date().toISOString()
+};
+
+const INITIAL_SUGGESTIONS: Suggestion[] = [
+    {
+        label: "Calculate my borrowing power",
+        value: "calculate",
+        field: "action"
+    },
+    {
+        label: "Explain the mortgage process",
+        value: "explain",
+        field: "action"
+    },
+    {
+        label: "What documents do I need?",
+        value: "documents",
+        field: "action"
+    }
+];
+
 const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onAction }) => {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [streamingMessage, setStreamingMessage] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState(false);
+    const [currentSuggestions, setCurrentSuggestions] = useState<Suggestion[]>(INITIAL_SUGGESTIONS);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const streamingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -49,19 +82,9 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
         });
     };
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!inputValue.trim()) return;
-
-        const userMessage: ChatMessage = {
-            role: 'user',
-            content: inputValue,
-            timestamp: new Date().toISOString()
-        };
-
-        setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
-        setInputValue('');
+    const sendMessage = async (message: string) => {
         setIsLoading(true);
+        setCurrentSuggestions([]);
 
         try {
             const response = await fetch('http://localhost:8000/chat', {
@@ -69,7 +92,7 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: inputValue, context }),
+                body: JSON.stringify({ message, context }),
             });
 
             if (!response.ok) {
@@ -94,7 +117,11 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
             // Handle any actions
             if (data.actions && data.actions.length > 0 && onAction) {
                 data.actions.forEach((action: any) => {
-                    onAction(action);
+                    if (action.type === 'suggest_answers') {
+                        setCurrentSuggestions(action.payload.suggestions);
+                    } else {
+                        onAction(action);
+                    }
                 });
             }
 
@@ -109,6 +136,34 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!inputValue.trim()) return;
+
+        const userMessage: ChatMessage = {
+            role: 'user',
+            content: inputValue,
+            timestamp: new Date().toISOString()
+        };
+
+        setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
+        setInputValue('');
+        
+        await sendMessage(inputValue);
+    };
+
+    const handleSuggestionClick = async (suggestion: Suggestion) => {
+        // Create and add user message
+        const userMessage: ChatMessage = {
+            role: 'user',
+            content: suggestion.label,
+            timestamp: new Date().toISOString()
+        };
+        setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
+        
+        await sendMessage(suggestion.label);
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -157,21 +212,35 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
                 
                 <div className="chat-messages">
                     {messages.map((message: ChatMessage, index: number) => (
-                        <div
-                            key={index}
-                            className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-                        >
-                            <div className="message-content">
-                                {message.role === 'assistant' || message.role === 'system' ? (
-                                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                                ) : (
-                                    message.content
-                                )}
+                        <React.Fragment key={index}>
+                            <div
+                                className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                            >
+                                <div className="message-content">
+                                    {message.role === 'assistant' || message.role === 'system' ? (
+                                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                                    ) : (
+                                        message.content
+                                    )}
+                                </div>
+                                <div className="message-timestamp">
+                                    {new Date(message.timestamp).toLocaleTimeString()}
+                                </div>
                             </div>
-                            <div className="message-timestamp">
-                                {new Date(message.timestamp).toLocaleTimeString()}
-                            </div>
-                        </div>
+                            {message.role === 'assistant' && index === messages.length - 1 && currentSuggestions.length > 0 && (
+                                <div className="suggestions-container">
+                                    {currentSuggestions.map((suggestion, idx) => (
+                                        <button
+                                            key={idx}
+                                            className="suggestion-button"
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                        >
+                                            {suggestion.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </React.Fragment>
                     ))}
                     {isStreaming && (
                         <div className="message assistant-message">

@@ -132,6 +132,21 @@ function App() {
     setIsChatExpanded(!isChatExpanded);
   };
 
+  const handleChatAction = (action: any) => {
+    if (action.type === 'update_field') {
+      // Create a synthetic event to update the form
+      const syntheticEvent = {
+        target: {
+          name: action.payload.field,
+          value: action.payload.value,
+          type: typeof action.payload.value === 'boolean' ? 'radio' : 'text'
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      
+      handleFormChange(syntheticEvent);
+    }
+  };
+
   return (
     <div className="site-wrapper">
       <header className="site-header">
@@ -178,6 +193,7 @@ function App() {
         isExpanded={isChatExpanded}
         onToggle={handleChatToggle}
         context={formDataToContext(formData)}
+        onAction={handleChatAction}
       />
     </div>
   );

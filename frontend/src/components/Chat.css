@@ -194,4 +194,33 @@
 .send-button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
-} 
+}
+
+.suggestions-container {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+    padding: 0 16px;
+}
+
+.suggestion-button {
+    padding: 8px 16px;
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: #495057;
+}
+
+.suggestion-button:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.suggestion-button:active {
+    transform: scale(0.98);
+}

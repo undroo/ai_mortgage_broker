@@ -13,7 +13,7 @@ import sys
 
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.append(project_root)
-from backend.api.models import ChatResponse
+from backend.api.models import ChatResponse, Action, ActionType, Field
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +43,11 @@ class ChatModel:
             "Prompt to user to answer more questions if they are not providing enough information.",
             "When creating actions, do not create actions that are not relevant to the user's situation.",
             "When creating actions around income, make sure to match the income and frequency based on what the user said",
+            "Try not to ask multiple questions at once, ask one question at a time",
             # Descriptions of fields
             "gross income is the income before tax received by the person during each of the income frequencies",
-            "If there is an action to update income, make sure to update the income and frequency based on what the user said and not accidentally annualise it without changing the frequency", 
+            "If there is action to update anything with frequency. If the frequency is not weekly, monthly or yearly, adjust the value to the annual amount and change the frequency to yearly",
+
         ]
 
         # Add government schemes to system messages
@@ -136,6 +138,12 @@ class ChatModel:
             - interestRate: number
             - borrowingType: "Individual", "Couple"
 
+            A few notes: 
+            - rentalIncome is a weekly amount
+            - livingExpenses is a monthly amount
+            - rentBoard is a monthly amount
+            - if someone provides information that is not in the right frequency, adjust it to the annual amount and change the relevant frequency to annual. Eg. if someone said they earn 1k a fortnight, convert that to be 26k a year and change the frequency to yearly.
+
             The response should be helpful and take into account the conversation history
             and the context of the user including their details. If there is a borrowing model, 
             please use refer to it if relevant. 
@@ -166,6 +174,8 @@ class ChatModel:
             response_data = json.loads(response.text)
             response_text = response_data.get("response", "")
             actions = response_data.get("actions", [])
+            # If there are actions, we need to make sure they are valid
+
             
             self.logger.info("Response generated successfully")
             return response_text, actions
@@ -174,6 +184,53 @@ class ChatModel:
             self.logger.error("Raw response that failed to parse:")
             self.logger.error(response.text)
             return response.text, []  # Fallback to raw text if JSON parsing fails
+        
+    def _validate_actions(self, actions: List[Action]) -> List[Action]:
+        """
+        Validate the actions to make sure they are valid.
+        """
+        field_names = [field.value for field in Field]
+        # Check if the actions are valid
+        for action in actions:
+            if action.type not in [ActionType.UPDATE_FIELD, ActionType.DO_NOTHING]:
+                raise ValueError(f"Invalid action type: {action.type}")
+            if action.field not in field_names:
+                raise ValueError(f"Invalid field: {action.field}")
+            if action.field == Field.INCOME_FREQUENCY:
+                if action.value not in ["weekly", "monthly", "yearly"]:
+                    raise ValueError(f"Invalid income frequency: {action.value}")
+            if action.field == Field.OTHER_INCOME_FREQUENCY:
+                if action.value not in ["weekly", "monthly", "yearly"]:
+                    raise ValueError(f"Invalid other income frequency: {action.value}")
+            if action.field == Field.SECOND_PERSON_INCOME_FREQUENCY:
+                if action.value not in ["weekly", "monthly", "yearly"]:
+                    raise ValueError(f"Invalid second person income frequency: {action.value}")
+            if action.field == Field.SECOND_PERSON_OTHER_INCOME_FREQUENCY:
+                if action.value not in ["weekly", "monthly", "yearly"]:
+                    raise ValueError(f"Invalid second person other income frequency: {action.value}")
+            # Make sure the value is a number
+            if action.field in [Field.GROSS_INCOME, 
+                                Field.OTHER_INCOME, 
+                                Field.SECOND_PERSON_INCOME, 
+                                Field.SECOND_PERSON_OTHER_INCOME, 
+                                Field.RENTAL_INCOME, 
+                                Field.RENT_BOARD, 
+                                Field.LIVING_EXPENSES, 
+                                Field.INTEREST_RATE, 
+                                Field.CREDIT_CARD_LIMITS, 
+                                Field.LOAN_REPAYMENT, 
+                                Field.AGE, 
+                                Field.DEPENDENTS,
+                                Field.LOAN_TERM]:
+                if float(action.value) < 0:
+                    raise ValueError(f"{action.field} cannot be negative: {action.value}")
+                if isinstance(action.value, str):
+                    try:
+                        action.value = float(action.value)
+                    except ValueError:
+                        raise ValueError(f"Invalid value for {action.field}: {action.value}")
+            
+        return actions
 
     def chat(self, question: str, context: str = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
