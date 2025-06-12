@@ -31,6 +31,7 @@ class BorrowingType(enum.Enum):
     COUPLE = "Couple"
 
 class Field(enum.Enum):
+    IS_FIRST_TIME_BUYER = "isFirstTimeBuyer"
     GROSS_INCOME = "grossIncome"
     INCOME_FREQUENCY = "incomeFrequency"
     OTHER_INCOME = "otherIncome"
@@ -70,6 +71,7 @@ class ChatResponse(BaseModel):
     actions: Optional[List[Action]] = None
 
 class EstimateRequest(BaseModel):
+    isFirstTimeBuyer: bool
     grossIncome: float
     incomeFrequency: str
     otherIncome: float

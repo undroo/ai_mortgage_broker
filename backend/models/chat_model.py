@@ -116,6 +116,7 @@ class ChatModel:
             Current question: {question}
 
             Valid field names and their allowed values:
+            - isFirstTimeBuyer: "true", "false"
             - grossIncome: number
             - incomeFrequency: "weekly", "monthly", "yearly"
             - otherIncome: number
@@ -130,7 +131,7 @@ class ChatModel:
             - dependents: number
             - creditCardLimits: number
             - loanRepayment: number
-            - hasHecs: true/false
+            - hasHecs: "true", "false"
             - age: number
             - employmentType: "Full-time", "Part-time", "Self-employed", "Unemployed"
             - loanPurpose: "Owner-occupied", "Investor"
@@ -211,6 +212,10 @@ class ChatModel:
                 if action.value not in ["weekly", "monthly", "yearly"]:
                     raise ValueError(f"Invalid second person other income frequency: {action.value}")
             # Make sure the value is a number
+            if action.field == Field.IS_FIRST_TIME_BUYER:
+                if action.value not in ["true", "false"]:
+                    raise ValueError(f"Invalid is first time buyer: {action.value}")
+                action.value = action.value == "true"
             if action.field in [Field.GROSS_INCOME, 
                                 Field.OTHER_INCOME, 
                                 Field.SECOND_PERSON_INCOME, 

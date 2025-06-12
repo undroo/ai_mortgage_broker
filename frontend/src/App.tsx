@@ -6,6 +6,7 @@ import './App.css';
 import BorrowingCalculator from './components/BorrowingCalculator';
 
 const initialFormData: HomeLoanFormData = {
+  isFirstTimeBuyer: false,
   loanPurpose: '',
   borrowingType: 'Individual',
   age: '30',
@@ -31,6 +32,7 @@ const initialFormData: HomeLoanFormData = {
 
 function formDataToContext(form: HomeLoanFormData): string {
   const lines = [
+    form.isFirstTimeBuyer ? `First-time home buyer: Yes` : `First-time home buyer: No`,
     form.borrowingType && `Borrowing as: ${form.borrowingType === 'couple' ? 'Couple' : 'Individual'}`,
     form.loanPurpose && `Loan purpose: ${form.loanPurpose}`,
     form.age ? `Age: ${form.age}` : '',
@@ -83,9 +85,13 @@ function App() {
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let newValue: any = value;
-    
-    if (name === 'hasHecs') {
-      newValue = value === 'true';
+
+    if (name === 'isFirstTimeBuyer' || name === 'hasHecs') {
+      if (value === 'true') {
+        newValue = true;
+      } else if (value === 'false') {
+        newValue = false;
+      }
     }
     
     setFormData(prev => ({

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './BorrowingCalculator.css';
 
 export interface HomeLoanFormData {
+  isFirstTimeBuyer: boolean;
   loanPurpose: string;
   borrowingType: string;
   age: string | number;
@@ -36,6 +37,31 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
   const isCouple = formData.borrowingType === 'Couple';
   const isInvestor = formData.loanPurpose === 'Investor';
 
+  const handleBooleanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value === 'true';
+    console.log('Boolean change:', { 
+      name: e.target.name, 
+      value,
+      currentValue: formData[e.target.name as keyof HomeLoanFormData]
+    }); // Debug log
+    
+    // Create a synthetic event that matches the expected type
+    const syntheticEvent = {
+      target: {
+        name: e.target.name,
+        value: value,
+        type: 'radio'
+      },
+      currentTarget: {
+        name: e.target.name,
+        value: value,
+        type: 'radio'
+      }
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    
+    onFormChange(syntheticEvent);
+  };
+
   return (
     <div className="borrowing-calculator">
       <div className="stage-card">
@@ -44,6 +70,31 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
           {/* Personal Details */}
           <div className="form-section">
             <div className="form-section-title">Personal Details</div>
+            <label className="toggle-label">
+              Are you a first-time home buyer?
+              <div className="toggle-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="isFirstTimeBuyer"
+                    value="true"
+                    checked={formData.isFirstTimeBuyer === true}
+                    onChange={handleBooleanChange}
+                  />
+                  Yes
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="isFirstTimeBuyer"
+                    value="false"
+                    checked={formData.isFirstTimeBuyer === false}
+                    onChange={handleBooleanChange}
+                  />
+                  No
+                </label>
+              </div>
+            </label>
             <label>
               Borrowing as
               <select name="borrowingType" value={formData.borrowingType} onChange={onFormChange} required>
@@ -266,7 +317,7 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                     name="hasHecs"
                     value="true"
                     checked={formData.hasHecs === true}
-                    onChange={onFormChange}
+                    onChange={handleBooleanChange}
                   />
                   Yes
                 </label>
@@ -276,7 +327,7 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                     name="hasHecs"
                     value="false"
                     checked={formData.hasHecs === false}
-                    onChange={onFormChange}
+                    onChange={handleBooleanChange}
                   />
                   No
                 </label>
