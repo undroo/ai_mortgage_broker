@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import Chat from './components/Chat';
 import { HomeLoanFormData } from './components/BorrowingCalculator';
 import Tabs from './components/Tabs';
 import './App.css';
 import BorrowingCalculator from './components/BorrowingCalculator';
+import PropertyAnalysis from './components/PropertyAnalysis';
 
 const initialFormData: HomeLoanFormData = {
   isFirstTimeBuyer: false,
@@ -73,25 +75,58 @@ function getEstimatePayload(form: HomeLoanFormData) {
   };
 }
 
-function App() {
+// Create a client
+const queryClient = new QueryClient();
+
+// Property search query function
+const fetchPropertyData = async (url: string) => {
+  const response = await fetch('http://localhost:8000/property/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      url,
+      categories: ['work', 'groceries', 'schools']
+    }),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  
+  return response.json();
+};
+
+function AppContent() {
   const [formData, setFormData] = useState<HomeLoanFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState(0);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [loanRepayment, setLoanRepayment] = useState<number | null>(null);
   const [estimateSummary, setEstimateSummary] = useState<string>('');
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
+  const [propertyUrl, setPropertyUrl] = useState<string>('');
+
+  // React Query for property data
+  const { 
+    data: propertyResponse,
+    isLoading: isPropertyLoading,
+    error: propertyError,
+    refetch: refetchProperty
+  } = useQuery({
+    queryKey: ['property', propertyUrl],
+    queryFn: () => fetchPropertyData(propertyUrl),
+    enabled: false, // Don't fetch automatically
+  });
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     let newValue: any = value;
-
-    if (name === 'isFirstTimeBuyer' || name === 'hasHecs') {
-      if (value === 'true') {
-        newValue = true;
-      } else if (value === 'false') {
-        newValue = false;
-      }
+    
+    // Handle boolean fields
+    if (name === 'hasHecs' || name === 'isFirstTimeBuyer') {
+      newValue = value === 'true';
     }
     
     setFormData(prev => ({
@@ -127,13 +162,6 @@ function App() {
     };
   }, [formData, activeTab]);
 
-  const tabLabels = [
-    'Stage 1: Your Details',
-    'Stage 2',
-    'Stage 3',
-    'Stage 4',
-  ];
-
   const handleChatToggle = () => {
     setIsChatExpanded(!isChatExpanded);
   };
@@ -153,6 +181,11 @@ function App() {
     }
   };
 
+  const handlePropertySubmit = async (url: string) => {
+    setPropertyUrl(url);
+    refetchProperty();
+  };
+
   return (
     <div className="site-wrapper">
       <header className="site-header">
@@ -167,7 +200,7 @@ function App() {
       <div className="content-wrapper">
         <main className="main-content">
           <div className="main-left">
-            <Tabs labels={tabLabels} activeIndex={activeTab} onTabChange={setActiveTab}>
+            <Tabs labels={['Stage 1: Borrowing Power', 'Stage 2: Planning', 'Stage 3: Analyze Properties']} activeIndex={activeTab} onTabChange={setActiveTab}>
               {activeTab === 0 && (
                 <BorrowingCalculator formData={formData} onFormChange={handleFormChange} />
               )}
@@ -175,24 +208,49 @@ function App() {
                 <div className="stage-card"><h2 className="stage-title">Stage 2 (Coming Soon)</h2></div>
               )}
               {activeTab === 2 && (
-                <div className="stage-card"><h2 className="stage-title">Stage 3 (Coming Soon)</h2></div>
-              )}
-              {activeTab === 3 && (
-                <div className="stage-card"><h2 className="stage-title">Stage 4 (Coming Soon)</h2></div>
+                <PropertyAnalysis
+                  url={propertyUrl}
+                  onUrlChange={setPropertyUrl}
+                  onSubmit={handlePropertySubmit}
+                  propertyData={propertyResponse?.property_data || null}
+                  distanceInfo={propertyResponse?.distance_info || null}
+                  error={propertyError ? propertyError.message : null}
+                  isLoading={isPropertyLoading}
+                  onNext={() => setActiveTab(3)}
+                  onBack={() => setActiveTab(1)}
+                />
               )}
             </Tabs>
           </div>
         </main>
         <aside className="estimate-sidebar">
-          {estimate !== null && (
-            <div className="estimate-box">
-              <div className="estimate-label">Estimated Borrowing Power</div>
-              <div className="estimate-value">${estimate.toLocaleString()}</div>
-              <div className="estimate-divider"></div>
-              <div className="estimate-label">Monthly Loan Repayment</div>
-              <div className="estimate-value">${loanRepayment?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            </div>
-          )}
+          <div className="estimate-container">
+            {estimate !== null && (
+              <div className="estimate-box">
+                <h3>Estimated Borrowing Power</h3>
+                <p className="estimate-value">
+                  ${estimate.toLocaleString()}
+                </p>
+              </div>
+            )}
+            <div className="estimate-divider"></div>
+            {loanRepayment !== null && (
+              <div className="estimate-box">
+                <h3>Estimated Monthly Repayment</h3>
+                <p className="estimate-value">
+                  ${loanRepayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+            )}
+            <div className="estimate-divider"></div>
+            {estimateSummary && (
+              <div className="estimate-box">
+                <div className="estimate-summary">
+                  <p>{estimateSummary}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </aside>
       </div>
       <Chat 
@@ -202,6 +260,15 @@ function App() {
         onAction={handleChatAction}
       />
     </div>
+  );
+}
+
+// Wrap the app with QueryClientProvider
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   );
 }
 

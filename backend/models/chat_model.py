@@ -14,6 +14,7 @@ import sys
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.append(project_root)
 from backend.api.models import ChatResponse, Action, ActionType, Field
+from backend.models.borrowing_model import BorrowingResponse
 
 logger = logging.getLogger(__name__)
 
@@ -95,13 +96,14 @@ class ChatModel:
         
         return "\n".join(formatted_history)
 
-    def _generate_response(self, question: str, context: str = None) -> Tuple[str, List[Dict[str, Any]]]:
+    def _generate_response(self, question: str, context: str = None, borrowing_response: BorrowingResponse = False) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Generate a response using the model, taking into account conversation history.
         
         Args:
             question (str): The user's question
             context (str): Optional context about the user's situation
+            borrowing_response (BorrowingResponse): The borrowing model if it exists
             
         Returns:
             Tuple[str, List[Dict[str, Any]]]: The model's response text and list of actions
@@ -148,10 +150,15 @@ class ChatModel:
             The response should be helpful and take into account the conversation history
             and the context of the user including their details. If there is a borrowing model, 
             please use refer to it if relevant. 
-            context: {context}
+
+            If the user is providing details that are not in the context or borrowing model or correct information that is already in the context or borrowing model, create an UPDATE_FIELD action to update that field.
+
+            Chat history: {context}
+
+            Borrowing model: {borrowing_response}
 
             Actions:
-            UPDATE_FIELD: Create when the user provides information that is not in the context. Or if the user is correcting information that is already in the context.
+            UPDATE_FIELD: Create when the user provides information that is not in the context or borrowing model. Or if the user is correcting information that is already in the context or borrowing model.
             SUGGESTED_ANSWERS: Create when you are asking a question to the user, an example is when asking if a user has HECs debt, you can suggest answers like "Yes" or "No".
             """
         
@@ -239,14 +246,14 @@ class ChatModel:
             
         return actions
 
-    def chat(self, question: str, context: str = None) -> Tuple[str, List[Dict[str, Any]]]:
+    def chat(self, question: str, context: str = None, borrowing_response: BorrowingResponse = False) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Process a user question and generate a response.
         
         Args:
             question (str): The user's question
             context (str): The context of the user including their details
-            
+            borrow_model (BorrowingResponse): The borrowing model if it exists
         Returns:
             Tuple[str, List[Dict[str, Any]]]: The assistant's response text and list of actions
         """
@@ -256,10 +263,8 @@ class ChatModel:
             "content": question,
             "timestamp": datetime.now().isoformat()
         })
-        
         # Generate response
-        response_text, actions = self._generate_response(question, context)
-        
+        response_text, actions = self._generate_response(question, context, borrowing_response)
         # Add assistant response to history
         self.message_history.append({
             "role": "assistant",

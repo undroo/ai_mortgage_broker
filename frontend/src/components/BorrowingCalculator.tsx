@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './BorrowingCalculator.css';
 
 export interface HomeLoanFormData {
@@ -385,7 +385,6 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
               />
             </label>
           </div>
-          <button type="button" className="next-btn">Calculate</button>
         </form>
       </div>
     </div>

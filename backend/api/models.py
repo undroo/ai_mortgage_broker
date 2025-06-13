@@ -113,3 +113,32 @@ class BorrowingResponse(BaseModel):
     borrowing_power: float
     loan_purpose: str
     loan_repayment: float
+
+class PropertyInitializationRequest(BaseModel):
+    """
+    Request model for property initialization.
+    
+    Attributes:
+        url (str): The Domain.com.au property URL to analyze
+        categories (Optional[List[str]]): List of categories for distance calculations
+            (e.g., ["school", "train", "shopping"])
+    """
+    url: str
+    categories: Optional[List[str]] = None
+
+class PropertyInitializationResponse(BaseModel):
+    """
+    Response model for property initialization.
+    
+    Attributes:
+        session_id (str): Unique identifier for the analysis session
+        status (str): Current status of the initialization ("ready" or "error")
+        property_data (Optional[Dict]): Scraped property data if available
+        distance_info (Optional[Dict]): Distance calculations if available
+        error (Optional[str]): Error message if initialization failed
+    """
+    session_id: str
+    status: str
+    property_data: Optional[Dict] = None
+    distance_info: Optional[Dict] = None
+    error: Optional[str] = None
