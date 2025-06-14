@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from .models import ChatRequest, ChatResponse, EstimateRequest, EstimateResponse
+from .models import ChatRequest, ChatResponse, EstimateRequest, EstimateResponse, GovernmentSchemesRequest, GovernmentSchemesResponse
 import os
 import sys
 from pathlib import Path
@@ -235,8 +235,10 @@ async def search_property(
             error=error_msg
         )
 
-# TODO: Add a route to return government schemes with eligibility and offer
-
+@borrowing_router.post("/government-schemes", response_model=GovernmentSchemesResponse)
+async def get_government_schemes(request: GovernmentSchemesRequest) -> GovernmentSchemesResponse:
+    print(request)
+    return GovernmentSchemesResponse(schemes=borrowing_model.check_government_schemes(request.state))
 
 # Create FastAPI app
 app = FastAPI(

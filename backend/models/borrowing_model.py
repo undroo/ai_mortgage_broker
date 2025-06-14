@@ -3,15 +3,20 @@ from pydantic import BaseModel
 import json
 from models.tax_rates import calculate_tax
 from models.hec_rates import calculate_hecs_repayment
-from api.models import EstimateRequest, BorrowingResponse
+from api.models import EstimateRequest, BorrowingResponse, GovernmentScheme
 
 class BorrowingModel:
     def __init__(self):
         self.details = None
         self.assumptions = self.load_assumptions()
+        self.government_schemes = self.load_government_schemes()
         
     def load_assumptions(self):
         with open('backend/utils/assumptions.json', 'r') as f:
+            return json.load(f)
+        
+    def load_government_schemes(self):
+        with open('backend/utils/government_schemes.json', 'r') as f:
             return json.load(f)
 
     def update_details(self, request: EstimateRequest):
@@ -85,6 +90,7 @@ class BorrowingModel:
             self.yearly_secondPersonOtherIncome += self.yearly_rentalIncome / 2
 
         # Need to apply taxes to income
+        self.household_income = self.yearly_income + self.yearly_other_income + self.yearly_secondPersonIncome + self.yearly_secondPersonOtherIncome
         self.yearly_income_after_tax = self.yearly_income + self.yearly_other_income - calculate_tax(self.yearly_income+self.yearly_other_income)
         self.yearly_secondPersonIncome_after_tax = self.yearly_secondPersonIncome + self.yearly_secondPersonOtherIncome - calculate_tax(self.yearly_secondPersonIncome+self.yearly_secondPersonOtherIncome)
         
@@ -135,3 +141,38 @@ class BorrowingModel:
             self.borrowing_power = round(self.yearly_income_after_expenses * (1 - (1 + rate)**-self.details.loanTerm) / rate, 0)
             # calculate loan repayment on a monthly basis
             self.expected_loan_repayment = self.borrowing_power * pre_buffer_rate/12 * (1 + pre_buffer_rate/12)**(self.details.loanTerm*12) / ((1 + pre_buffer_rate/12)**(self.details.loanTerm*12) - 1)
+
+    def check_government_schemes(self, state):
+        schemes = []
+        for scheme_name, scheme in self.government_schemes[state]['first_home_schemes'].items():
+            new_scheme = GovernmentScheme(
+                name=scheme['name'],
+                eligibilityDescription=scheme['eligibility'],
+                offer=scheme['offer'],
+                eligibilityRequirements=[]
+            )
+            for requirement in scheme['eligibilityRequirements']:
+                if requirement == "isFirstTimeBuyer":
+                    if self.details.isFirstTimeBuyer:
+                        new_scheme.eligibilityRequirements.append(("First time buyer", True))
+                    else:
+                        new_scheme.eligibilityRequirements.append(("First time buyer", False))
+                elif requirement == "borrowingType":
+                    if self.details.borrowingType is not None and self.details.borrowingType == "Individual":
+                        if self.household_income <= scheme['eligibilityRequirements']['borrowingType']['Individual']['householdIncome']:
+                            new_scheme.eligibilityRequirements.append(("Household income below $125,000", True))
+                        else:
+                            new_scheme.eligibilityRequirements.append(("Household income below $125,000", False))
+                    else:
+                        if self.household_income <= scheme['eligibilityRequirements']['borrowingType']['Couple']['householdIncome']:
+                            new_scheme.eligibilityRequirements.append(("Household income below $200,000", True))
+                        else:
+                            new_scheme.eligibilityRequirements.append(("Household income below $200,000", False))
+                elif requirement == "loanPurpose":
+                    if self.details.loanPurpose is not None and self.details.loanPurpose == "Owner-occupied":
+                        new_scheme.eligibilityRequirements.append(("Owner-occupied", True))
+                    else:
+                        new_scheme.eligibilityRequirements.append(("Owner-occupied", False))
+
+            schemes.append(new_scheme)
+        return schemes

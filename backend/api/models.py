@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field as PydanticField
-from typing import List, Dict, Any, Optional, Literal, Union
+from typing import List, Dict, Any, Optional, Literal, Union, Tuple
 import enum
 
 class ChatRequest(BaseModel):
@@ -145,11 +145,13 @@ class PropertyInitializationResponse(BaseModel):
 
 class GovernmentSchemesRequest(BaseModel):
     state: str
-    isFirstTimeBuyer: bool
-    loanPurpose: str
-    borrowingType: str
-    dependents: int
-    grossIncome: float
+    
+
+class GovernmentScheme(BaseModel):
+    name: str
+    eligibilityDescription: str
+    offer: str
+    eligibilityRequirements: List[Tuple[str, bool]] # Requirement, is met
 
 class GovernmentSchemesResponse(BaseModel):
-    schemes: Dict[str, Dict[str, str]]
+    schemes: List[GovernmentScheme]

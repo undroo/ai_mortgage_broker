@@ -4,13 +4,29 @@
             "First Home Buyers Assistance Scheme": {
                 "name": "First Home Buyers Assistance Scheme",
                 "eligibility": "First time buying a home in Australia and must be Australia citizen or permanent resident. Must be under 1 million dollars. Must move within 12 months of settlement and live for 12 continuous months in the property.",
-                "offer": "Exempt for first $800,000, reduced rate for next $200,000"
+                "offer": "Exempt for first $800,000, reduced rate for next $200,000",
+                "eligibilityRequirements": {
+                    "loanPurpose": "Owner-occupied",
+                    "isFirstTimeBuyer": "True",
+                    "borrowingType": {
+                        "Individual": {
+                            "householdIncome": 125000
+                        },
+                        "Couple": {
+                            "householdIncome": 200000
+                        }
+                    }
+                }
             },
             "First Home Super Saver Scheme": {
                 "name": "First Home Super Saver Scheme",
                 "eligibility": "First time buying a home in Australia and must be Australia citizen or permanent resident. Must be under 1 million dollars. Must move within 12 months of settlement and live for 12 continuous months in the property.",
                 "offer": "Salary sacrifice up to $15,000 per year into superannuation account. This amount is tax deductible but is taxed at the superannuation rate instead.",
-                "limits": "Total contributions are capped at $50,000 across all years."
+                "limits": "Total contributions are capped at $50,000 across all years.",
+                "eligibilityRequirements": {
+                    "loanPurpose": "Owner-occupied",
+                    "isFirstTimeBuyer": "True"
+                }
             }
         }
     }

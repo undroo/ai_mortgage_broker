@@ -8,6 +8,7 @@ import BorrowingCalculator from './components/BorrowingCalculator';
 import PropertyAnalysis from './components/PropertyAnalysis';
 import PlanningStage from './components/PlanningStage';
 import { useBudgetCalculation } from './hooks/useBudgetCalculation';
+import { GovernmentScheme } from './components/PlanningStage';
 
 const initialFormData: HomeLoanFormData = {
   isFirstTimeBuyer: false,
@@ -102,6 +103,26 @@ const fetchPropertyData = async (url: string) => {
   return data;
 };
 
+// Government schemes query function
+const fetchGovernmentSchemes = async () => {
+  const response = await fetch('http://localhost:8000/api/government-schemes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      state: 'NSW', // TODO: expand this to other states eventually
+    }),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  
+  const data = await response.json();
+  return data.schemes;
+};
+
 function AppContent() {
   const [formData, setFormData] = useState<HomeLoanFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState(0);
@@ -113,7 +134,6 @@ function AppContent() {
   const [propertyUrl, setPropertyUrl] = useState<string>('');
   const [downPaymentType, setDownPaymentType] = useState<'percentage' | 'amount'>('percentage');
   const [downPaymentValue, setDownPaymentValue] = useState<string>('20');
-
   // React Query for property data
   const { 
     data: propertyResponse,
@@ -124,6 +144,17 @@ function AppContent() {
     queryKey: ['property', propertyUrl],
     queryFn: () => fetchPropertyData(propertyUrl),
     enabled: false, // Don't fetch automatically
+  });
+
+  // React Query for government schemes
+  const { 
+    data: schemes = [],
+    isLoading: isSchemesLoading,
+    error: schemesError
+  } = useQuery({
+    queryKey: ['governmentSchemes', formData],
+    queryFn: fetchGovernmentSchemes,
+    enabled: activeTab === 1, // Only fetch when on planning stage
   });
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -227,6 +258,8 @@ function AppContent() {
                   downPaymentAmount={downPaymentAmount}
                   onNext={() => setActiveTab(2)}
                   onBack={() => setActiveTab(0)}
+                  governmentSchemes={schemes}
+                  isLoadingSchemes={isSchemesLoading}
                 />
               )}
               {activeTab === 2 && (

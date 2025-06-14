@@ -9,8 +9,17 @@ interface PlanningStageProps {
   onDownPaymentValueChange: (value: string) => void;
   totalBudget: number | null;
   downPaymentAmount: number | null;
+  governmentSchemes: GovernmentScheme[];
+  isLoadingSchemes: boolean;
   onNext: () => void;
   onBack: () => void;
+}
+
+export interface GovernmentScheme {
+  name: string;
+  eligibilityDescription: string;
+  offer: string;
+  eligibilityRequirements: Array<[string, boolean]>;
 }
 
 const PlanningStage: React.FC<PlanningStageProps> = ({
@@ -22,7 +31,8 @@ const PlanningStage: React.FC<PlanningStageProps> = ({
   totalBudget,
   downPaymentAmount,
   onNext,
-  onBack
+  onBack,
+  governmentSchemes
 }) => {
   const [error, setError] = React.useState<string | null>(null);
 
@@ -125,6 +135,40 @@ const PlanningStage: React.FC<PlanningStageProps> = ({
             </div>
           </div>
         )}
+
+        <div className="government-schemes-section">
+          <h3>Government Schemes</h3>
+          {governmentSchemes.length > 0 ? (
+            <div className="schemes-list">
+              {governmentSchemes.map((scheme, index) => (
+                <div key={index} className="scheme-card">
+                  <div className="scheme-header">
+                    <h4>{scheme.name}</h4>
+                    <div className="scheme-offer">{scheme.offer}</div>
+                  </div>
+                  <p className="scheme-description">{scheme.eligibilityDescription}</p>
+                  <div className="scheme-requirements">
+                    <h5>Eligibility Requirements:</h5>
+                    <ul>
+                      {scheme.eligibilityRequirements.map(([requirement, isEligible], i) => (
+                        <li key={i} className={isEligible ? 'eligible' : 'not-eligible'}>
+                          <span className="requirement-icon">
+                            {isEligible ? '✓' : '✗'}
+                          </span>
+                          {requirement}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-schemes">
+              No government schemes available for your current situation.
+            </div>
+          )}
+        </div>
 
         <div className="navigation-buttons">
           <button onClick={onBack} className="back-button">Back</button>

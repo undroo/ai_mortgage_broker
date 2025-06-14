@@ -39,25 +39,15 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
 
   const handleBooleanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === 'true';
-    console.log('Boolean change:', { 
-      name: e.target.name, 
-      value,
-      currentValue: formData[e.target.name as keyof HomeLoanFormData]
-    }); // Debug log
     
     // Create a synthetic event that matches the expected type
     const syntheticEvent = {
       target: {
         name: e.target.name,
-        value: value,
-        type: 'radio'
-      },
-      currentTarget: {
-        name: e.target.name,
-        value: value,
+        value: value.toString(), // Convert boolean to string
         type: 'radio'
       }
-    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    } as React.ChangeEvent<HTMLInputElement>;
     
     onFormChange(syntheticEvent);
   };

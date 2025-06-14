@@ -163,4 +163,106 @@
 .next-button:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
+}
+
+.government-schemes-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.government-schemes-section h3 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+}
+
+.schemes-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.scheme-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scheme-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.scheme-header h4 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.scheme-offer {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.scheme-description {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.scheme-requirements h5 {
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.scheme-requirements ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scheme-requirements li {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  color: #64748b;
+}
+
+.requirement-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 0.75rem;
+  border-radius: 50%;
+  font-size: 0.8rem;
+}
+
+.eligible .requirement-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.not-eligible .requirement-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.no-schemes {
+  text-align: center;
+  color: #64748b;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 } 
