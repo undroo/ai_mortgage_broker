@@ -235,7 +235,7 @@ async def search_property(
             error=error_msg
         )
 
-
+# TODO: Add a route to return government schemes with eligibility and offer
 
 
 # Create FastAPI app

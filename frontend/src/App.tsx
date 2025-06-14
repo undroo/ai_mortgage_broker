@@ -6,6 +6,8 @@ import Tabs from './components/Tabs';
 import './App.css';
 import BorrowingCalculator from './components/BorrowingCalculator';
 import PropertyAnalysis from './components/PropertyAnalysis';
+import PlanningStage from './components/PlanningStage';
+import { useBudgetCalculation } from './hooks/useBudgetCalculation';
 
 const initialFormData: HomeLoanFormData = {
   isFirstTimeBuyer: false,
@@ -95,7 +97,9 @@ const fetchPropertyData = async (url: string) => {
     throw new Error('Network response was not ok');
   }
   
-  return response.json();
+  const data = await response.json();
+  console.log('Property data:', data);
+  return data;
 };
 
 function AppContent() {
@@ -107,6 +111,8 @@ function AppContent() {
   const [estimateSummary, setEstimateSummary] = useState<string>('');
   const debounceRef = useRef<NodeJS.Timeout>();
   const [propertyUrl, setPropertyUrl] = useState<string>('');
+  const [downPaymentType, setDownPaymentType] = useState<'percentage' | 'amount'>('percentage');
+  const [downPaymentValue, setDownPaymentValue] = useState<string>('20');
 
   // React Query for property data
   const { 
@@ -186,6 +192,12 @@ function AppContent() {
     refetchProperty();
   };
 
+  const { totalBudget, downPaymentAmount } = useBudgetCalculation({
+    estimate,
+    downPaymentType,
+    downPaymentValue,
+  });
+
   return (
     <div className="site-wrapper">
       <header className="site-header">
@@ -205,7 +217,17 @@ function AppContent() {
                 <BorrowingCalculator formData={formData} onFormChange={handleFormChange} />
               )}
               {activeTab === 1 && (
-                <div className="stage-card"><h2 className="stage-title">Stage 2 (Coming Soon)</h2></div>
+                <PlanningStage
+                  borrowingPower={estimate}
+                  downPaymentType={downPaymentType}
+                  downPaymentValue={downPaymentValue}
+                  onDownPaymentTypeChange={setDownPaymentType}
+                  onDownPaymentValueChange={setDownPaymentValue}
+                  totalBudget={totalBudget}
+                  downPaymentAmount={downPaymentAmount}
+                  onNext={() => setActiveTab(2)}
+                  onBack={() => setActiveTab(0)}
+                />
               )}
               {activeTab === 2 && (
                 <PropertyAnalysis
@@ -225,12 +247,31 @@ function AppContent() {
         </main>
         <aside className="estimate-sidebar">
           <div className="estimate-container">
-            {estimate !== null && (
+            {/* {estimate !== null && (
               <div className="estimate-box">
                 <h3>Estimated Borrowing Power</h3>
                 <p className="estimate-value">
                   ${estimate.toLocaleString()}
                 </p>
+              </div>
+            )} */}
+            {/* <div className="estimate-divider"></div> */}
+            {totalBudget !== null && (
+              <div className="estimate-box">
+                <h3>Total Budget</h3>
+                <p className="estimate-value total-budget">
+                  ${totalBudget.toLocaleString()}
+                </p>
+                <div className="budget-breakdown">
+                  <div className="breakdown-item">
+                    <span>Borrowing Power:</span>
+                    <span>${estimate?.toLocaleString()}</span>
+                  </div>
+                  <div className="breakdown-item">
+                    <span>Down Payment:</span>
+                    <span>${downPaymentAmount?.toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
             )}
             <div className="estimate-divider"></div>

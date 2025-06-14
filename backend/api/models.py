@@ -142,3 +142,14 @@ class PropertyInitializationResponse(BaseModel):
     property_data: Optional[Dict] = None
     distance_info: Optional[Dict] = None
     error: Optional[str] = None
+
+class GovernmentSchemesRequest(BaseModel):
+    state: str
+    isFirstTimeBuyer: bool
+    loanPurpose: str
+    borrowingType: str
+    dependents: int
+    grossIncome: float
+
+class GovernmentSchemesResponse(BaseModel):
+    schemes: Dict[str, Dict[str, str]]

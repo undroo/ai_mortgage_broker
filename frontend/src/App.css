@@ -123,6 +123,41 @@ body, .site-wrapper {
   margin-bottom: 0;
 }
 
+.estimate-value.total-budget {
+  color: #2ecc71;
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.estimate-box .budget-breakdown {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+
+.estimate-box .breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.estimate-box .breakdown-item:first-child {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.estimate-box .breakdown-item span:first-child {
+  color: #64748b;
+}
+
+.estimate-box .breakdown-item span:last-child {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
 /* ========== Responsive ========== */
 @media (max-width: 1100px) {
   .content-wrapper {
