@@ -31,26 +31,38 @@ export interface HomeLoanFormData {
 interface BorrowingCalculatorProps {
   formData: HomeLoanFormData;
   onFormChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onNext: () => void;
 }
 
-const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onFormChange }) => {
+const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ 
+  formData, 
+  onFormChange,
+  onNext 
+}) => {
   const isCouple = formData.borrowingType === 'Couple';
   const isInvestor = formData.loanPurpose === 'Investor';
 
-  const handleBooleanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === 'true';
-    
-    // Create a synthetic event that matches the expected type
+  const handleFormChange = (field: string, value: string | boolean) => {
     const syntheticEvent = {
       target: {
-        name: e.target.name,
-        value: value.toString(), // Convert boolean to string
-        type: 'radio'
+        name: field,
+        value: value,
+        type: typeof value === 'boolean' ? 'radio' : 'text'
       }
     } as React.ChangeEvent<HTMLInputElement>;
-    
     onFormChange(syntheticEvent);
   };
+
+  const getMissingFields = () => {
+    const missing = [];
+    if (!formData.grossIncome) missing.push('Gross Income');
+    if (!formData.borrowingType) missing.push('Borrowing Type');
+    if (!formData.loanPurpose) missing.push('Loan Purpose');
+    return missing;
+  };
+
+  const missingFields = getMissingFields();
+  const isButtonDisabled = missingFields.length > 0;
 
   return (
     <div className="borrowing-calculator">
@@ -59,83 +71,69 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
         <form className="stage-form">
           {/* Personal Details */}
           <div className="form-section">
-            <div className="form-section-title">Personal Details</div>
-            <label className="toggle-label">
-              Are you a first-time home buyer?
-              <div className="toggle-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="isFirstTimeBuyer"
-                    value="true"
-                    checked={formData.isFirstTimeBuyer === true}
-                    onChange={handleBooleanChange}
-                  />
-                  Yes
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="isFirstTimeBuyer"
-                    value="false"
-                    checked={formData.isFirstTimeBuyer === false}
-                    onChange={handleBooleanChange}
-                  />
-                  No
-                </label>
+          <div className="form-section-title">Personal Details</div>
+            <div className="form-row">
+              <div className="form-group">
+                <div className="borrowing-type-options">
+                  <div 
+                    className={`borrowing-type-option ${formData.isFirstTimeBuyer === true ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('isFirstTimeBuyer', true)}
+                  >
+                    <h4>First Time Buyer</h4>
+                    <p>This is my first time buying a property</p>
+                  </div>
+                  <div 
+                    className={`borrowing-type-option ${formData.isFirstTimeBuyer === false ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('isFirstTimeBuyer', false)}
+                  >
+                    <h4>Current Property Owner</h4>
+                    <p>I own or have owned property before</p>
+                  </div>
+                </div>
               </div>
-            </label>
-            <label>
-              Borrowing as
-              <select name="borrowingType" value={formData.borrowingType} onChange={onFormChange} required>
-                <option value="Individual">Individual</option>
-                <option value="Couple">Couple</option>
-              </select>
-            </label>
-            <label>
-              Loan purpose
-              <select name="loanPurpose" value={formData.loanPurpose} onChange={onFormChange} required>
-                <option value="" disabled>Select purpose</option>
-                <option value="Owner-occupied">Owner-occupied</option>
-                <option value="Investor">Investor</option>
-              </select>
-            </label>
-            <label>
-              Age
-              <input
-                type="number"
-                name="age"
-                value={formData.age || ''}
-                onChange={onFormChange}
-                min="0"
-                max="99"
-                required
-                placeholder="Your age"
-              />
-            </label>
-            <label>
-              Number of dependents
-              <input
-                type="number"
-                name="dependents"
-                value={formData.dependents || ''}
-                onChange={onFormChange}
-                min="0"
-                max="10"
-                required
-                placeholder="e.g. 0"
-              />
-            </label>
-            <label>
-              Employment type
-              <select name="employmentType" value={formData.employmentType} onChange={onFormChange} required>
-                <option value="" disabled>Select employment</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Self-employed">Self-employed</option>
-                <option value="Unemployed">Unemployed</option>
-              </select>
-            </label>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <div className="borrowing-type-options">
+                  <div 
+                    className={`borrowing-type-option ${formData.borrowingType === 'Individual' ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('borrowingType', 'Individual')}
+                  >
+                    <h4>Single</h4>
+                    <p>I am applying for a loan by myself</p>
+                  </div>
+                  <div 
+                    className={`borrowing-type-option ${formData.borrowingType === 'Couple' ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('borrowingType', 'Couple')}
+                  >
+                    <h4>Couple</h4>
+                    <p>I am applying for a loan with my partner</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <div className="borrowing-type-options">
+                  <div 
+                    className={`borrowing-type-option ${formData.loanPurpose === 'Owner-occupied' ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('loanPurpose', 'Owner-occupied')}
+                  >
+                    <h4>Owner Occupier</h4>
+                    <p>I want to live in this property</p>
+                  </div>
+                  <div 
+                    className={`borrowing-type-option ${formData.loanPurpose === 'Investor' ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('loanPurpose', 'Investor')}
+                  >
+                    <h4>Investor</h4>
+                    <p>I want to rent out this property</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Income */}
@@ -279,7 +277,7 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                 onChange={onFormChange}
                 min="0"
                 required
-                placeholder="e.g. 2500"
+                placeholder="e.g. $2,500 per month"
               />
             </label>
             <label>
@@ -290,7 +288,7 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                 value={formData.rentBoard || ''}
                 onChange={onFormChange}
                 min="0"
-                placeholder="e.g. 1200"
+                placeholder="e.g. $1,200 per month"
               />
             </label>
           </div>
@@ -307,7 +305,7 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                     name="hasHecs"
                     value="true"
                     checked={formData.hasHecs === true}
-                    onChange={handleBooleanChange}
+                    onChange={onFormChange}
                   />
                   Yes
                 </label>
@@ -317,7 +315,7 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                     name="hasHecs"
                     value="false"
                     checked={formData.hasHecs === false}
-                    onChange={handleBooleanChange}
+                    onChange={onFormChange}
                   />
                   No
                 </label>
@@ -331,18 +329,18 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
                 value={formData.creditCardLimits || ''}
                 onChange={onFormChange}
                 min="0"
-                placeholder="e.g. 10000"
+                placeholder="e.g. $10,000 total credit card limits"
               />
             </label>
             <label>
-              Personal or car loans (monthly repayment)
+              All loan repayments (monthly repayment)
               <input
                 type="number"
                 name="loanRepayment"
                 value={formData.loanRepayment || ''}
                 onChange={onFormChange}
                 min="0"
-                placeholder="e.g. 350"
+                placeholder="e.g. $350 per month"
               />
             </label>
           </div>
@@ -376,6 +374,28 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({ formData, onF
             </label>
           </div>
         </form>
+
+        <div className="navigation-buttons">
+          <div className="button-tooltip-container">
+            <button 
+              onClick={onNext} 
+              className="next-button"
+              disabled={isButtonDisabled}
+            >
+              Next
+            </button>
+            {isButtonDisabled && (
+              <div className="tooltip">
+                Please fill in the following required fields:
+                <ul>
+                  {missingFields.map((field, index) => (
+                    <li key={index}>{field}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

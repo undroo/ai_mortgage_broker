@@ -10,6 +10,7 @@ class BorrowingModel:
         self.details = None
         self.assumptions = self.load_assumptions()
         self.government_schemes = self.load_government_schemes()
+        self.eligible_government_schemes = []
         
     def load_assumptions(self):
         with open('backend/utils/assumptions.json', 'r') as f:
@@ -48,6 +49,12 @@ class BorrowingModel:
             )
         else:
             return None
+        
+    def get_eligible_government_schemes(self):
+        if self.eligible_government_schemes is not None:
+            return self.eligible_government_schemes
+        else:
+            return []
     
     def calculate_total_income(self): # Convert all income to yearly
         # First person's income
@@ -175,4 +182,6 @@ class BorrowingModel:
                         new_scheme.eligibilityRequirements.append(("Owner-occupied", False))
 
             schemes.append(new_scheme)
+
+        self.eligible_government_schemes = schemes
         return schemes

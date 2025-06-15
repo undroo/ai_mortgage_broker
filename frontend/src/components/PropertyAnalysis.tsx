@@ -26,6 +26,8 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   distanceInfo,
   error,
   isLoading,
+  onNext,
+  onBack
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +168,10 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
             </div>
           </div>
         )}
+
+        <div className="navigation-buttons">
+          <button onClick={onBack} className="back-button">Back</button>
+        </div>
       </div>
     </div>
   );

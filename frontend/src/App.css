@@ -20,26 +20,36 @@ body, .site-wrapper {
   font-family: var(--font-main);
 }
 
+.site-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ========== Header ========== */
 .site-header {
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   background: var(--primary-blue);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .navbar {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  height: 64px;
   display: flex;
   align-items: center;
+  padding: 0 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .site-name {
-  color: #fff;
-  font-size: 1.35rem;
+  color: white;
+  font-size: 1.2rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
 }
 
 /* ========== Hero Section ========== */
@@ -67,26 +77,37 @@ body, .site-wrapper {
 .content-wrapper {
   display: flex;
   gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--padding-main);
-  position: relative;
+  padding: 2rem;
+  padding-right: calc(25vw + 2rem);
+  padding-left: 320px;
+  margin-top: 64px;
+  flex: 1;
+}
+
+.estimate-sidebar {
+  width: 300px;
+  position: fixed;
+  left: 0;
+  top: 64px;
+  height: calc(100vh - 64px);
+  padding: 2rem;
+  padding-right: 0;
 }
 
 .main-content {
   flex: 1;
   min-width: 0;
+  margin: 0 auto;
+  max-width: 1200px;
 }
 
 .main-left {
   width: 100%;
 }
 
-.estimate-sidebar {
-  width: 300px;
-  position: sticky;
-  top: 2rem;
-  height: fit-content;
+.estimate-container {
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* ========== Estimate Box ========== */
@@ -96,6 +117,11 @@ body, .site-wrapper {
   box-shadow: 0 2px 8px rgba(34,58,95,0.07);
   text-align: center;
   padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.estimate-box:last-child {
+  margin-bottom: 0;
 }
 
 .estimate-label {
@@ -118,7 +144,6 @@ body, .site-wrapper {
   margin: 1rem 0;
 }
 
-/* Last estimate value doesn't need bottom margin */
 .estimate-value:last-child {
   margin-bottom: 0;
 }
@@ -222,5 +247,11 @@ body, .site-wrapper {
   .app-main {
     padding: 1rem;
   }
+}
+
+/* Remove any extra margins from the tabs container */
+.tabs-container {
+  margin-top: 0;
+  padding-top: 0;
 }
  

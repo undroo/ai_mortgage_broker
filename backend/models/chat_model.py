@@ -13,7 +13,7 @@ import sys
 
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.append(project_root)
-from backend.api.models import ChatResponse, Action, ActionType, Field
+from backend.api.models import ChatResponse, Action, ActionType, Field, GovernmentScheme
 from backend.models.borrowing_model import BorrowingResponse
 
 logger = logging.getLogger(__name__)
@@ -96,7 +96,7 @@ class ChatModel:
         
         return "\n".join(formatted_history)
 
-    def _generate_response(self, question: str, context: str = None, borrowing_response: BorrowingResponse = False) -> Tuple[str, List[Dict[str, Any]]]:
+    def _generate_response(self, question: str, context: str = None, borrowing_response: BorrowingResponse = False, eligible_government_schemes: List[GovernmentScheme] = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Generate a response using the model, taking into account conversation history.
         
@@ -142,10 +142,14 @@ class ChatModel:
             - borrowingType: "Individual", "Couple"
 
             A few notes: 
-            - rentalIncome is a weekly amount
+            - rentalIncome is a weekly amount, ONLY use the weekly amount, otherwise convert it to weekly. This is the only frequency that is allowed when the loan purpose is investor.
             - livingExpenses is a monthly amount
             - rentBoard is a monthly amount
             - if someone provides information that is not in the right frequency, adjust it to the annual amount and change the relevant frequency to annual. Eg. if someone said they earn 1k a fortnight, convert that to be 26k a year and change the frequency to yearly.
+            - household income is the total income of the household, including the income of the second person if they are a couple. it is not something the user provides, but calculated. do not ask for this, only ask for what fields are in the context or borrowing model.
+            - if an 'update_field' action is created, if the field has a related frequency, make sure to update the frequency to the correct frequency.
+            - loan repayments is a monthly amount, if a number is provided but the frequency is not monthly, convert it to monthly.
+            - regarding hecs, we only need to ask if they have hecs debt and not the amount.
 
             The response should be helpful and take into account the conversation history
             and the context of the user including their details. If there is a borrowing model, 
@@ -156,6 +160,8 @@ class ChatModel:
             Chat history: {context}
 
             Borrowing model: {borrowing_response}
+
+            Eligible government schemes: {eligible_government_schemes}
 
             Actions:
             UPDATE_FIELD: Create when the user provides information that is not in the context or borrowing model. Or if the user is correcting information that is already in the context or borrowing model.
@@ -246,7 +252,7 @@ class ChatModel:
             
         return actions
 
-    def chat(self, question: str, context: str = None, borrowing_response: BorrowingResponse = False) -> Tuple[str, List[Dict[str, Any]]]:
+    def chat(self, question: str, context: str = None, borrowing_response: BorrowingResponse = False, eligible_government_schemes: List[GovernmentScheme] = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Process a user question and generate a response.
         
@@ -264,7 +270,7 @@ class ChatModel:
             "timestamp": datetime.now().isoformat()
         })
         # Generate response
-        response_text, actions = self._generate_response(question, context, borrowing_response)
+        response_text, actions = self._generate_response(question, context, borrowing_response, eligible_government_schemes)
         # Add assistant response to history
         self.message_history.append({
             "role": "assistant",

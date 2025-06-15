@@ -5,8 +5,6 @@ import './Chat.css';
 
 interface ChatProps {
     context?: string;
-    isExpanded: boolean;
-    onToggle: () => void;
     onAction?: (action: any) => void;
 }
 
@@ -34,7 +32,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
     }
 ];
 
-const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onAction }) => {
+const Chat: React.FC<ChatProps> = ({ context = '', onAction }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -193,105 +191,81 @@ const Chat: React.FC<ChatProps> = ({ context = '', isExpanded, onToggle, onActio
     }, []);
 
     return (
-        <div className={`chat-wrapper ${isExpanded ? 'expanded' : 'collapsed'}`}>
-            {!isExpanded && (
-                <button 
-                    className="chat-bubble"
-                    onClick={onToggle}
-                    aria-label="Open chat"
-                >
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                </button>
+        <div className="chat-sidebar">
+            <div className="chat-header">
+                <h3>Mortgage Mate</h3>
+            </div>
+            
+            <div className="chat-messages">
+                {messages.map((message: ChatMessage, index: number) => (
+                    <React.Fragment key={index}>
+                        <div
+                            className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                        >
+                            <div className="message-content">
+                                {message.role === 'assistant' || message.role === 'system' ? (
+                                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                                ) : (
+                                    message.content
+                                )}
+                            </div>
+                            <div className="message-timestamp">
+                                {new Date(message.timestamp).toLocaleTimeString()}
+                            </div>
+                        </div>
+                    </React.Fragment>
+                ))}
+                {isStreaming && (
+                    <div className="message assistant-message">
+                        <div className="message-content">
+                            <ReactMarkdown>{streamingMessage}</ReactMarkdown>
+                        </div>
+                    </div>
+                )}
+                <div ref={messagesEndRef} />
+            </div>
+            
+            {currentSuggestions.length > 0 && (
+                <div className="suggestions-container">
+                    {currentSuggestions.map((suggestion, idx) => (
+                        <button
+                            key={idx}
+                            className="suggestion-button"
+                            onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                            {suggestion.label}
+                        </button>
+                    ))}
+                </div>
             )}
             
-            <div className={`chat-container ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                <div className="chat-header" onClick={onToggle}>
-                    <h3>Mortgage Mate</h3>
-                    <button 
-                        className="minimize-button"
-                        onClick={(e) => {
-                            e.stopPropagation(); // Prevent header click from triggering
-                            onToggle();
-                        }}
-                        aria-label="Minimize chat"
-                    >
-                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
-                            <path d="M19 9l-7 7-7-7"></path>
+            <form onSubmit={handleSubmit} className="chat-input-container">
+                <input
+                    type="text"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    placeholder="Ask me anything..."
+                    disabled={isLoading}
+                    className="chat-input"
+                />
+                <button 
+                    type="submit" 
+                    disabled={isLoading || !inputValue.trim()}
+                    className="send-button"
+                >
+                    {isLoading ? (
+                        <div className="loading-dots">
+                            <span>•</span>
+                            <span>•</span>
+                            <span>•</span>
+                        </div>
+                    ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
                         </svg>
-                    </button>
-                </div>
-                
-                <div className="chat-messages">
-                    {messages.map((message: ChatMessage, index: number) => (
-                        <React.Fragment key={index}>
-                            <div
-                                className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-                            >
-                                <div className="message-content">
-                                    {message.role === 'assistant' || message.role === 'system' ? (
-                                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                                    ) : (
-                                        message.content
-                                    )}
-                                </div>
-                                <div className="message-timestamp">
-                                    {new Date(message.timestamp).toLocaleTimeString()}
-                                </div>
-                            </div>
-                            {message.role === 'assistant' && index === messages.length - 1 && currentSuggestions.length > 0 && (
-                                <div className="suggestions-container">
-                                    {currentSuggestions.map((suggestion, idx) => (
-                                        <button
-                                            key={idx}
-                                            className="suggestion-button"
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                        >
-                                            {suggestion.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </React.Fragment>
-                    ))}
-                    {isStreaming && (
-                        <div className="message assistant-message">
-                            <div className="message-content">
-                                <ReactMarkdown>{streamingMessage}</ReactMarkdown>
-                            </div>
-                        </div>
                     )}
-                    {isLoading && !isStreaming && (
-                        <div className="message assistant-message">
-                            <div className="message-content">
-                                <div className="loading-dots">
-                                    <span>.</span><span>.</span><span>.</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
-                
-                <form onSubmit={handleSubmit} className="chat-input-form">
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={handleInputChange}
-                        placeholder="Type your message..."
-                        disabled={isLoading || isStreaming}
-                        className="chat-input"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isLoading || isStreaming || !inputValue.trim()}
-                        className="send-button"
-                    >
-                        Send
-                    </button>
-                </form>
-            </div>
+                </button>
+            </form>
         </div>
     );
 };

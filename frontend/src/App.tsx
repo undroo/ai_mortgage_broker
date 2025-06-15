@@ -8,16 +8,15 @@ import BorrowingCalculator from './components/BorrowingCalculator';
 import PropertyAnalysis from './components/PropertyAnalysis';
 import PlanningStage from './components/PlanningStage';
 import { useBudgetCalculation } from './hooks/useBudgetCalculation';
-import { GovernmentScheme } from './components/PlanningStage';
 
 const initialFormData: HomeLoanFormData = {
-  isFirstTimeBuyer: false,
-  loanPurpose: '',
+  isFirstTimeBuyer: true,
+  loanPurpose: 'Owner-occupied',
   borrowingType: 'Individual',
   age: '30',
   dependents: '0',
   employmentType: '',
-  grossIncome: '',
+  grossIncome: 0,
   incomeFrequency: 'monthly',
   otherIncome: '',
   otherIncomeFrequency: 'monthly',
@@ -162,7 +161,7 @@ function AppContent() {
     let newValue: any = value;
     
     // Handle boolean fields
-    if (name === 'hasHecs' || name === 'isFirstTimeBuyer') {
+    if (name === 'hasHecs') {
       newValue = value === 'true';
     }
     
@@ -233,62 +232,16 @@ function AppContent() {
     <div className="site-wrapper">
       <header className="site-header">
         <nav className="navbar">
-          <div className="site-name">Mortgage Mate</div>
+          <div className="site-name">Mortgage Mate AI - v0.1</div>
         </nav>
       </header>
-      <section className="hero-section">
+      {/* <section className="hero-section">
         <h1 className="hero-headline">Get instant answers to your mortgage questions.</h1>
         <p className="hero-subtitle">Your free, friendly mortgage assistant.</p>
-      </section>
+      </section> */}
       <div className="content-wrapper">
-        <main className="main-content">
-          <div className="main-left">
-            <Tabs labels={['Stage 1: Borrowing Power', 'Stage 2: Planning', 'Stage 3: Analyze Properties']} activeIndex={activeTab} onTabChange={setActiveTab}>
-              {activeTab === 0 && (
-                <BorrowingCalculator formData={formData} onFormChange={handleFormChange} />
-              )}
-              {activeTab === 1 && (
-                <PlanningStage
-                  borrowingPower={estimate}
-                  downPaymentType={downPaymentType}
-                  downPaymentValue={downPaymentValue}
-                  onDownPaymentTypeChange={setDownPaymentType}
-                  onDownPaymentValueChange={setDownPaymentValue}
-                  totalBudget={totalBudget}
-                  downPaymentAmount={downPaymentAmount}
-                  onNext={() => setActiveTab(2)}
-                  onBack={() => setActiveTab(0)}
-                  governmentSchemes={schemes}
-                  isLoadingSchemes={isSchemesLoading}
-                />
-              )}
-              {activeTab === 2 && (
-                <PropertyAnalysis
-                  url={propertyUrl}
-                  onUrlChange={setPropertyUrl}
-                  onSubmit={handlePropertySubmit}
-                  propertyData={propertyResponse?.property_data || null}
-                  distanceInfo={propertyResponse?.distance_info || null}
-                  error={propertyError ? propertyError.message : null}
-                  isLoading={isPropertyLoading}
-                  onNext={() => setActiveTab(3)}
-                  onBack={() => setActiveTab(1)}
-                />
-              )}
-            </Tabs>
-          </div>
-        </main>
         <aside className="estimate-sidebar">
           <div className="estimate-container">
-            {/* {estimate !== null && (
-              <div className="estimate-box">
-                <h3>Estimated Borrowing Power</h3>
-                <p className="estimate-value">
-                  ${estimate.toLocaleString()}
-                </p>
-              </div>
-            )} */}
-            {/* <div className="estimate-divider"></div> */}
             {totalBudget !== null && (
               <div className="estimate-box">
                 <h3>Total Budget</h3>
@@ -326,13 +279,54 @@ function AppContent() {
             )}
           </div>
         </aside>
+        <main className="main-content">
+          <div className="main-left">
+            <Tabs labels={['Stage 1: Borrowing Power', 'Stage 2: Planning', 'Stage 3: Analyze Properties']} activeIndex={activeTab} onTabChange={setActiveTab}>
+              {activeTab === 0 && (
+                <BorrowingCalculator 
+                  formData={formData} 
+                  onFormChange={handleFormChange}
+                  onNext={() => setActiveTab(1)}
+                />
+              )}
+              {activeTab === 1 && (
+                <PlanningStage
+                  borrowingPower={estimate}
+                  downPaymentType={downPaymentType}
+                  downPaymentValue={downPaymentValue}
+                  onDownPaymentTypeChange={setDownPaymentType}
+                  onDownPaymentValueChange={setDownPaymentValue}
+                  totalBudget={totalBudget}
+                  downPaymentAmount={downPaymentAmount}
+                  onNext={() => setActiveTab(2)}
+                  onBack={() => setActiveTab(0)}
+                  governmentSchemes={schemes}
+                  isLoadingSchemes={isSchemesLoading}
+                />
+              )}
+              {activeTab === 2 && (
+                <PropertyAnalysis
+                  url={propertyUrl}
+                  onUrlChange={setPropertyUrl}
+                  onSubmit={handlePropertySubmit}
+                  propertyData={propertyResponse?.property_data || null}
+                  distanceInfo={propertyResponse?.distance_info || null}
+                  error={propertyError ? propertyError.message : null}
+                  isLoading={isPropertyLoading}
+                  onNext={() => setActiveTab(3)}
+                  onBack={() => setActiveTab(1)}
+                />
+              )}
+            </Tabs>
+          </div>
+        </main>
+        <aside className="chat-sidebar">
+          <Chat 
+            context={formDataToContext(formData)}
+            onAction={handleChatAction}
+          />
+        </aside>
       </div>
-      <Chat 
-        isExpanded={isChatExpanded}
-        onToggle={handleChatToggle}
-        context={formDataToContext(formData)}
-        onAction={handleChatAction}
-      />
     </div>
   );
 }

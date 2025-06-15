@@ -92,9 +92,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
         context = request.context
         if borrowing_model.details != None:
             borrowing_response = borrowing_model.get_borrowing_response()
+            eligible_government_schemes = borrowing_model.get_eligible_government_schemes()
         else:   
             borrowing_response = None
-        response_text, actions = chat_model.chat(request.message, context=context, borrowing_response=borrowing_response)
+            eligible_government_schemes = []
+        response_text, actions = chat_model.chat(request.message, context=context, borrowing_response=borrowing_response, eligible_government_schemes=eligible_government_schemes)
         print(actions)
         return ChatResponse(response=response_text, actions=actions)    
     except Exception as e:
@@ -237,7 +239,6 @@ async def search_property(
 
 @borrowing_router.post("/government-schemes", response_model=GovernmentSchemesResponse)
 async def get_government_schemes(request: GovernmentSchemesRequest) -> GovernmentSchemesResponse:
-    print(request)
     return GovernmentSchemesResponse(schemes=borrowing_model.check_government_schemes(request.state))
 
 # Create FastAPI app

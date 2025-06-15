@@ -175,7 +175,6 @@ const PlanningStage: React.FC<PlanningStageProps> = ({
           <button 
             onClick={onNext} 
             className="next-button"
-            disabled={!totalBudget || !!error}
           >
             Next
           </button>

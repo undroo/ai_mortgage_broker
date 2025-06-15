@@ -12,24 +12,26 @@ export const useBudgetCalculation = ({
   downPaymentValue,
 }: BudgetCalculationProps) => {
   return useMemo(() => {
-    if (!estimate || !downPaymentValue) return { totalBudget: null, downPaymentAmount: null };
-
-    const downPayment = parseFloat(downPaymentValue);
-    if (isNaN(downPayment)) return { totalBudget: null, downPaymentAmount: null };
-
-    let totalBudget: number | null = null;
+    // Default to 0 if no estimate
+    const currentEstimate = estimate || 0;
+    
+    // Default to 0 if no down payment value
+    const downPayment = parseFloat(downPaymentValue) || 0;
+    
+    let totalBudget = 0;
+    let downPaymentAmount = 0;
 
     if (downPaymentType === 'percentage') {
-      if (downPayment < 5 || downPayment > 100) return { totalBudget: null, downPaymentAmount: null };
-      totalBudget = Math.round(estimate / (1 - (downPayment / 100)));
+      if (downPayment >= 5 && downPayment <= 100) {
+        totalBudget = Math.round(currentEstimate / (1 - (downPayment / 100)));
+        downPaymentAmount = Math.round(totalBudget * (downPayment / 100));
+      }
     } else {
-      if (downPayment < estimate * 0.05) return { totalBudget: null, downPaymentAmount: null };
-      totalBudget = Math.round(estimate + downPayment);
+      if (downPayment >= currentEstimate * 0.05) {
+        totalBudget = Math.round(currentEstimate + downPayment);
+        downPaymentAmount = downPayment;
+      }
     }
-
-    const downPaymentAmount = downPaymentType === 'percentage'
-      ? Math.round(totalBudget * (downPayment / 100))
-      : downPayment;
 
     return { totalBudget, downPaymentAmount };
   }, [estimate, downPaymentType, downPaymentValue]);
