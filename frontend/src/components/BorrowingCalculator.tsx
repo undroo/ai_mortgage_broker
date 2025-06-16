@@ -51,6 +51,18 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({
       }
     } as React.ChangeEvent<HTMLInputElement>;
     onFormChange(syntheticEvent);
+
+    // Update interest rate based on loan purpose
+    if (field === 'loanPurpose') {
+      const rateEvent = {
+        target: {
+          name: 'interestRate',
+          value: value === 'Investor' ? '5.8' : '5.5',
+          type: 'text'
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onFormChange(rateEvent);
+    }
   };
 
   const getMissingFields = () => {
@@ -142,50 +154,79 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({
             <div className="income-row">
               <label className="income-label">
                 {isCouple ? "First person's gross income/wages" : "Gross income/wages"}
-                <input
-                  type="number"
-                  name="grossIncome"
-                  value={formData.grossIncome || ''}
-                  onChange={onFormChange}
-                  min="0"
-                  required
-                  placeholder="e.g. 7000"
-                />
+                <div className="income-input-group">
+                  <input
+                    type="number"
+                    name="grossIncome"
+                    value={formData.grossIncome || ''}
+                    onChange={onFormChange}
+                    min="0"
+                    required
+                    placeholder="e.g. 7000"
+                  />
+                  <div className="frequency-buttons">
+                    <button
+                      type="button"
+                      className={`frequency-button ${formData.incomeFrequency === 'weekly' ? 'selected' : ''}`}
+                      onClick={() => handleFormChange('incomeFrequency', 'weekly')}
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      type="button"
+                      className={`frequency-button ${formData.incomeFrequency === 'monthly' ? 'selected' : ''}`}
+                      onClick={() => handleFormChange('incomeFrequency', 'monthly')}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      className={`frequency-button ${formData.incomeFrequency === 'yearly' ? 'selected' : ''}`}
+                      onClick={() => handleFormChange('incomeFrequency', 'yearly')}
+                    >
+                      Yearly
+                    </button>
+                  </div>
+                </div>
               </label>
-              <select
-                name="incomeFrequency"
-                value={formData.incomeFrequency}
-                onChange={onFormChange}
-                className="income-frequency-select"
-                required
-              >
-                <option value="monthly">Monthly</option>
-                <option value="weekly">Weekly</option>
-                <option value="yearly">Yearly</option>
-              </select>
             </div>
             <div className="income-row">
               <label className="income-label">
                 {isCouple ? "First person's other income (optional)" : "Other income (optional)"}
-                <input
-                  type="number"
-                  name="otherIncome"
-                  value={formData.otherIncome || ''}
-                  onChange={onFormChange}
-                  min="0"
-                  placeholder="e.g. 500"
-                />
+                <div className="income-input-group">
+                  <input
+                    type="number"
+                    name="otherIncome"
+                    value={formData.otherIncome || ''}
+                    onChange={onFormChange}
+                    min="0"
+                    placeholder="e.g. 500"
+                  />
+                  <div className="frequency-buttons">
+                    <button
+                      type="button"
+                      className={`frequency-button ${formData.otherIncomeFrequency === 'weekly' ? 'selected' : ''}`}
+                      onClick={() => handleFormChange('otherIncomeFrequency', 'weekly')}
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      type="button"
+                      className={`frequency-button ${formData.otherIncomeFrequency === 'monthly' ? 'selected' : ''}`}
+                      onClick={() => handleFormChange('otherIncomeFrequency', 'monthly')}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      className={`frequency-button ${formData.otherIncomeFrequency === 'yearly' ? 'selected' : ''}`}
+                      onClick={() => handleFormChange('otherIncomeFrequency', 'yearly')}
+                    >
+                      Yearly
+                    </button>
+                  </div>
+                </div>
               </label>
-              <select
-                name="otherIncomeFrequency"
-                value={formData.otherIncomeFrequency}
-                onChange={onFormChange}
-                className="income-frequency-select"
-              >
-                <option value="monthly">Monthly</option>
-                <option value="weekly">Weekly</option>
-                <option value="yearly">Yearly</option>
-              </select>
             </div>
 
             {/* Second person's income fields */}
@@ -195,50 +236,79 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({
                 <div className="income-row">
                   <label className="income-label">
                     Second person's gross income/wages
-                    <input
-                      type="number"
-                      name="secondPersonIncome"
-                      value={formData.secondPersonIncome || ''}
-                      onChange={onFormChange}
-                      min="0"
-                      required
-                      placeholder="e.g. 7000"
-                    />
+                    <div className="income-input-group">
+                      <input
+                        type="number"
+                        name="secondPersonIncome"
+                        value={formData.secondPersonIncome || ''}
+                        onChange={onFormChange}
+                        min="0"
+                        required
+                        placeholder="e.g. 7000"
+                      />
+                      <div className="frequency-buttons">
+                        <button
+                          type="button"
+                          className={`frequency-button ${formData.secondPersonIncomeFrequency === 'weekly' ? 'selected' : ''}`}
+                          onClick={() => handleFormChange('secondPersonIncomeFrequency', 'weekly')}
+                        >
+                          Weekly
+                        </button>
+                        <button
+                          type="button"
+                          className={`frequency-button ${formData.secondPersonIncomeFrequency === 'monthly' ? 'selected' : ''}`}
+                          onClick={() => handleFormChange('secondPersonIncomeFrequency', 'monthly')}
+                        >
+                          Monthly
+                        </button>
+                        <button
+                          type="button"
+                          className={`frequency-button ${formData.secondPersonIncomeFrequency === 'yearly' ? 'selected' : ''}`}
+                          onClick={() => handleFormChange('secondPersonIncomeFrequency', 'yearly')}
+                        >
+                          Yearly
+                        </button>
+                      </div>
+                    </div>
                   </label>
-                  <select
-                    name="secondPersonIncomeFrequency"
-                    value={formData.secondPersonIncomeFrequency}
-                    onChange={onFormChange}
-                    className="income-frequency-select"
-                    required
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
                 </div>
                 <div className="income-row">
                   <label className="income-label">
                     Second person's other income (optional)
-                    <input
-                      type="number"
-                      name="secondPersonOtherIncome"
-                      value={formData.secondPersonOtherIncome || ''}
-                      onChange={onFormChange}
-                      min="0"
-                      placeholder="e.g. 500"
-                    />
+                    <div className="income-input-group">
+                      <input
+                        type="number"
+                        name="secondPersonOtherIncome"
+                        value={formData.secondPersonOtherIncome || ''}
+                        onChange={onFormChange}
+                        min="0"
+                        placeholder="e.g. 500"
+                      />
+                      <div className="frequency-buttons">
+                        <button
+                          type="button"
+                          className={`frequency-button ${formData.secondPersonOtherIncomeFrequency === 'weekly' ? 'selected' : ''}`}
+                          onClick={() => handleFormChange('secondPersonOtherIncomeFrequency', 'weekly')}
+                        >
+                          Weekly
+                        </button>
+                        <button
+                          type="button"
+                          className={`frequency-button ${formData.secondPersonOtherIncomeFrequency === 'monthly' ? 'selected' : ''}`}
+                          onClick={() => handleFormChange('secondPersonOtherIncomeFrequency', 'monthly')}
+                        >
+                          Monthly
+                        </button>
+                        <button
+                          type="button"
+                          className={`frequency-button ${formData.secondPersonOtherIncomeFrequency === 'yearly' ? 'selected' : ''}`}
+                          onClick={() => handleFormChange('secondPersonOtherIncomeFrequency', 'yearly')}
+                        >
+                          Yearly
+                        </button>
+                      </div>
+                    </div>
                   </label>
-                  <select
-                    name="secondPersonOtherIncomeFrequency"
-                    value={formData.secondPersonOtherIncomeFrequency}
-                    onChange={onFormChange}
-                    className="income-frequency-select"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
                 </div>
               </>
             )}
@@ -296,31 +366,27 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({
           {/* Debts */}
           <div className="form-section">
             <div className="form-section-title">Debts</div>
-            <label className="toggle-label">
-              HECS/HELP student debt
-              <div className="toggle-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="hasHecs"
-                    value="true"
-                    checked={formData.hasHecs === true}
-                    onChange={onFormChange}
-                  />
-                  Yes
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="hasHecs"
-                    value="false"
-                    checked={formData.hasHecs === false}
-                    onChange={onFormChange}
-                  />
-                  No
-                </label>
+            <div className="form-row">
+              <div className="form-group">
+                <label>HECS/HELP Debt</label>
+                <div className="borrowing-type-options">
+                  <div 
+                    className={`borrowing-type-option ${formData.hasHecs === true ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('hasHecs', true)}
+                  >
+                    <h4>Yes</h4>
+                    <p>I have a HECS/HELP debt</p>
+                  </div>
+                  <div 
+                    className={`borrowing-type-option ${formData.hasHecs === false ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('hasHecs', false)}
+                  >
+                    <h4>No</h4>
+                    <p>I don't have a HECS/HELP debt</p>
+                  </div>
+                </div>
               </div>
-            </label>
+            </div>
             <label>
               Credit card limits (total across all cards)
               <input
@@ -359,19 +425,45 @@ const BorrowingCalculator: React.FC<BorrowingCalculatorProps> = ({
                 max="40"
               />
             </label>
-            <label>
-              Interest rate (%)
-              <input
-                type="number"
-                name="interestRate"
-                value={formData.interestRate || ''}
-                onChange={onFormChange}
-                min="0"
-                max="20"
-                step="0.01"
-                required
-              />
-            </label>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Interest Rate</label>
+                <div className="interest-rate-options">
+                  <div 
+                    className={`interest-rate-option ${formData.interestRate === '5.5' ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('interestRate', '5.5')}
+                  >
+                    <h4>Owner-occupied</h4>
+                    <p>5.5% p.a.</p>
+                  </div>
+                  <div 
+                    className={`interest-rate-option ${formData.interestRate === '5.8' ? 'selected' : ''}`}
+                    onClick={() => handleFormChange('interestRate', '5.8')}
+                  >
+                    <h4>Investor</h4>
+                    <p>5.8% p.a.</p>
+                  </div>
+                  <div 
+                    className={`interest-rate-option custom-rate ${formData.interestRate !== '6.0' && formData.interestRate !== '6.5' ? 'selected' : ''}`}
+                  >
+                    <h4>Custom Rate</h4>
+                    <div className="custom-rate-input">
+                      <input
+                        type="number"
+                        name="interestRate"
+                        value={formData.interestRate}
+                        onChange={onFormChange}
+                        min="0"
+                        max="20"
+                        step="0.1"
+                        placeholder="Enter rate"
+                      />
+                      <span>% p.a.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </form>
 

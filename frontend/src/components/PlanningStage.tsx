@@ -119,22 +119,20 @@ const PlanningStage: React.FC<PlanningStageProps> = ({
           {error && <div className="error-message">{error}</div>}
         </div>
 
-        {totalBudget && (
-          <div className="total-budget-section">
-            <h3>Your Total Budget</h3>
-            <p className="amount">${totalBudget.toLocaleString()}</p>
-            <div className="budget-breakdown">
-              <div className="breakdown-item">
-                <span>Borrowing Power:</span>
-                <span>${borrowingPower?.toLocaleString()}</span>
-              </div>
-              <div className="breakdown-item">
-                <span>Down Payment:</span>
-                <span>${downPaymentAmount?.toLocaleString()}</span>
-              </div>
+        <div className="total-budget-section">
+          <h3>Your Total Budget</h3>
+          <p className="amount">${totalBudget?.toLocaleString() || '0'}</p>
+          <div className="budget-breakdown">
+            <div className="breakdown-item">
+              <span>Borrowing Power:</span>
+              <span>${borrowingPower?.toLocaleString() || '0'}</span>
+            </div>
+            <div className="breakdown-item">
+              <span>Down Payment:</span>
+              <span>${downPaymentAmount?.toLocaleString() || '0'}</span>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="government-schemes-section">
           <h3>Government Schemes</h3>

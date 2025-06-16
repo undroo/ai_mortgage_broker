@@ -31,7 +31,7 @@ const initialFormData: HomeLoanFormData = {
   creditCardLimits: '',
   loanRepayment: '',
   loanTerm: '30',
-  interestRate: '6.0',
+  interestRate: '5.5',
 };
 
 function formDataToContext(form: HomeLoanFormData): string {
@@ -125,7 +125,6 @@ const fetchGovernmentSchemes = async () => {
 function AppContent() {
   const [formData, setFormData] = useState<HomeLoanFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState(0);
-  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [loanRepayment, setLoanRepayment] = useState<number | null>(null);
   const [estimateSummary, setEstimateSummary] = useState<string>('');
@@ -149,7 +148,6 @@ function AppContent() {
   const { 
     data: schemes = [],
     isLoading: isSchemesLoading,
-    error: schemesError
   } = useQuery({
     queryKey: ['governmentSchemes', formData],
     queryFn: fetchGovernmentSchemes,
@@ -160,9 +158,12 @@ function AppContent() {
     const { name, value } = e.target;
     let newValue: any = value;
     
-    // Handle boolean fields
-    if (name === 'hasHecs') {
-      newValue = value === 'true';
+    // Handle boolean field
+    // Convert string 'true'/'false' to boolean values
+    if (value === 'true') {
+      newValue = true;
+    } else if (value === 'false') {
+      newValue = false;
     }
     
     setFormData(prev => ({
@@ -197,10 +198,6 @@ function AppContent() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [formData, activeTab]);
-
-  const handleChatToggle = () => {
-    setIsChatExpanded(!isChatExpanded);
-  };
 
   const handleChatAction = (action: any) => {
     if (action.type === 'update_field') {
